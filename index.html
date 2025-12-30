@@ -231,7 +231,13 @@
         // =============================================
         // CONFIGURACIÓN - URL DE GOOGLE SHEETS
         // =============================================
-        var GOOGLE_SHEETS_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vS8BUtcabFx4ird0x1IH34baiqu5BOy_j7UjXfXlRUFZ93tFvCUUcBOPiT5XQ0QnA/pub?output=csv');
+        var SHEETS_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8BUtcabFx4ird0x1IH34baiqu5BOy_j7UjXfXlRUFZ93tFvCUUcBOPiT5XQ0QnA/pub?output=csv';
+        
+        function getSheetURL() {
+            // Agregar timestamp para evitar cache
+            var nocache = '&_=' + Date.now();
+            return 'https://corsproxy.io/?' + encodeURIComponent(SHEETS_BASE_URL + nocache);
+        }
         
         // =============================================
         // VARIABLES GLOBALES
@@ -315,7 +321,7 @@
             document.getElementById('errorScreen').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'none';
             
-            fetch(GOOGLE_SHEETS_URL)
+            fetch(getSheetURL())
                 .then(function(response) {
                     if (!response.ok) throw new Error('Error de red: ' + response.status);
                     return response.text();
