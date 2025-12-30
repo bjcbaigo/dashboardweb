@@ -231,7 +231,7 @@
         // =============================================
         // CONFIGURACIÓN - URL DE GOOGLE SHEETS
         // =============================================
-        var SHEETS_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8BUtcabFx4ird0x1IH34baiqu5BOy_j7UjXfXlRUFZ93tFvCUUcBOPiT5XQ0QnA/pub?output=csv';
+        var DATA_API_URL = 'https://script.google.com/macros/s/XXXXXXXXXXXX/exec';
         
         function getSheetURL() {
             // Agregar timestamp para evitar cache
@@ -314,39 +314,55 @@
         // CARGA DESDE GOOGLE SHEETS
         // =============================================
         function loadFromGoogleSheets() {
-            var btn = document.getElementById('btnReload');
-            btn.classList.add('loading');
-            
-            document.getElementById('loadingScreen').style.display = 'flex';
-            document.getElementById('errorScreen').style.display = 'none';
-            document.getElementById('dashboardContent').style.display = 'none';
-            
-            fetch(getSheetURL())
-                .then(function(response) {
-                    if (!response.ok) throw new Error('Error de red: ' + response.status);
-                    return response.text();
-                })
-                .then(function(csvText) {
-                    rawData = parseCSV(csvText);
-                    
-                    if (rawData.length > 0) {
-                        document.getElementById('loadingScreen').style.display = 'none';
-                        document.getElementById('dashboardContent').style.display = 'block';
-                        updateDashboard();
-                    } else {
-                        throw new Error('No se encontraron datos válidos');
-                    }
-                })
-                .catch(function(err) {
-                    console.error('Error:', err);
-                    document.getElementById('loadingScreen').style.display = 'none';
-                    document.getElementById('errorScreen').style.display = 'flex';
-                    document.getElementById('errorMsg').textContent = 'Error: ' + err.message;
-                })
-                .finally(function() {
-                    btn.classList.remove('loading');
-                });
-        }
+  var btn = document.getElementById('btnReload');
+  btn.classList.add('loading');
+
+  document.getElementById('loadingScreen').style.display = 'flex';
+  document.getElementById('errorScreen').style.display = 'none';
+  document.getElementById('dashboardContent').style.display = 'none';
+
+  fetch(DATA_API_URL + '?_=' + Date.now())
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function(payload) {
+      if (!payload || !payload.data || !payload.data.length) throw new Error('Sin datos');
+
+      // Adaptación: tu dashboard espera Date en `fecha`
+      rawData = payload.data.map(function(r) {
+        return {
+          fecha: parseDate(r.fecha), // r.fecha viene 'YYYY-MM-DD'
+          tipo: String(r.tipo || 'FAC').trim(),
+          nroComprobante: String(r.nroComprobante || '').trim(),
+          canal: String(r.canal || 'Otros').trim(),
+          cantidad: parseInt(r.cantidad, 10) || 0,
+          total: Number(r.total) || 0,
+          condicionVenta: String(r.condicionVenta || '').trim()
+        };
+      });
+
+      // Metadata real (ya no “simulada”)
+      document.getElementById('dataRange').textContent =
+        (payload.meta?.dateRange?.min || '--') + ' - ' + (payload.meta?.dateRange?.max || '--');
+      document.getElementById('lastUpdate').textContent =
+        new Date(payload.meta?.exportedAt || Date.now()).toLocaleString('es-AR');
+
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('dashboardContent').style.display = 'block';
+      updateDashboard();
+    })
+    .catch(function(err) {
+      console.error(err);
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'flex';
+      document.getElementById('errorMsg').textContent = 'Error: ' + err.message;
+    })
+    .finally(function() {
+      btn.classList.remove('loading');
+    });
+}
+
         
         function parseCSV(text) {
             var lines = text.split('\n');
