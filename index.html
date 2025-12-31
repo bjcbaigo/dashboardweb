@@ -23,14 +23,11 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
     .bg-pattern { position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      background:
-        radial-gradient(ellipse at 20% 20%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%);
-    }
+      background: radial-gradient(ellipse at 20% 20%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%); }
 
     header { position: relative; z-index: 10; padding: 1.5rem 3rem; display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid var(--border-color); backdrop-filter: blur(10px); background: rgba(10, 10, 15, 0.8);
-    }
+      border-bottom: 1px solid var(--border-color); backdrop-filter: blur(10px); background: rgba(10, 10, 15, 0.8); }
     .logo { display: flex; align-items: center; gap: 1rem; }
     .logo-icon { width: 48px; height: 48px; background: var(--gradient-1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem; }
     .logo-text { font-size: 1.5rem; font-weight: 700; }
@@ -45,9 +42,9 @@
     .data-source .dot { width: 6px; height: 6px; background: var(--accent-primary); border-radius: 50%; animation: pulse 2s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-    .btn-reload { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; background: var(--bg-card); border: 1px solid var(--border-color);
-      border-radius: 10px; color: var(--text-secondary); font-weight: 500; font-size: 0.8rem; cursor: pointer; font-family: inherit; transition: all 0.2s;
-    }
+    .btn-reload { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; background: var(--bg-card);
+      border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-secondary); font-weight: 500;
+      font-size: 0.8rem; cursor: pointer; font-family: inherit; transition: all 0.2s; }
     .btn-reload:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
     .btn-reload.loading { pointer-events: none; opacity: 0.6; }
     .btn-reload svg { width: 16px; height: 16px; }
@@ -58,7 +55,7 @@
     .loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 1.5rem; }
     .loading-spinner { width: 48px; height: 48px; border: 3px solid var(--border-color); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; }
     .loading-text { color: var(--text-secondary); font-size: 0.9rem; }
-    .error-msg { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 1rem 1.5rem; border-radius: 12px; text-align: center; max-width: 820px; }
+    .error-msg { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 1rem 1.5rem; border-radius: 12px; text-align: center; }
 
     .controls-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
     .period-tabs { display: flex; gap: 0.5rem; background: var(--bg-card); padding: 0.5rem; border-radius: 14px; border: 1px solid var(--border-color); }
@@ -73,15 +70,16 @@
     .stat-card.purple { --card-accent: var(--gradient-2); }
     .stat-card.blue { --card-accent: var(--gradient-3); }
     .stat-card.orange { --card-accent: var(--gradient-4); }
+    .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
     .stat-label { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; }
     .stat-value { font-size: 2rem; font-weight: 700; letter-spacing: -1px; margin-bottom: 0.5rem; font-family: 'Space Mono', monospace; }
     .stat-value.small { font-size: 1.5rem; }
     .stat-subtitle { font-size: 0.75rem; color: var(--text-muted); }
 
     .charts-section { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-    .charts-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
     .chart-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 1.75rem; }
-    .chart-title { font-size: 1.125rem; font-weight: 600; margin-bottom: 1.2rem; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .chart-title { font-size: 1.125rem; font-weight: 600; }
     .chart-container { height: 300px; position: relative; }
 
     .donut-container { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
@@ -97,6 +95,8 @@
     .donut-legend-color { width: 10px; height: 10px; border-radius: 3px; }
     .donut-legend-name { font-size: 0.75rem; color: var(--text-secondary); }
     .donut-legend-value { font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 600; }
+
+    .charts-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
 
     .table-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; overflow: hidden; }
     .table-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--border-color); }
@@ -129,17 +129,16 @@
       <div class="logo-icon">CH</div>
       <div class="logo-text">CHEMES <span>Ventas</span></div>
     </div>
-
     <div class="header-actions">
       <div class="data-info">
         <div class="last-update">Actualizado: <span id="lastUpdate">--</span></div>
         <div class="data-range" id="dataRange">Cargando...</div>
-        <div class="data-source"><span class="dot"></span> Conectado a Google Sheets</div>
+        <div class="data-source"><span class="dot"></span> Conectado a Google Sheets (WebApp)</div>
       </div>
-
-      <button class="btn-reload" id="btnReload" type="button">
+      <button class="btn-reload" id="btnReload" onclick="loadFromWebApp()">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
         Recargar
       </button>
@@ -149,44 +148,41 @@
   <main>
     <div id="loadingScreen" class="loading-screen">
       <div class="loading-spinner"></div>
-      <div class="loading-text">Cargando datos desde Google Sheets...</div>
+      <div class="loading-text">Cargando datos desde Apps Script...</div>
     </div>
 
     <div id="errorScreen" class="loading-screen" style="display:none;">
       <div class="error-msg" id="errorMsg">Error al cargar los datos</div>
-      <button class="btn-reload" id="btnRetry" type="button" style="margin-top:1rem;">Reintentar</button>
+      <button class="btn-reload" onclick="loadFromWebApp()" style="margin-top:1rem;">Reintentar</button>
     </div>
 
     <div id="dashboardContent" style="display:none;">
       <div class="controls-row">
         <div class="period-tabs">
-          <button class="period-tab active" data-period="daily" type="button">Diario</button>
-          <button class="period-tab" data-period="weekly" type="button">Semanal</button>
-          <button class="period-tab" data-period="monthly" type="button">Mensual</button>
+          <button class="period-tab active" data-period="daily">Diario</button>
+          <button class="period-tab" data-period="weekly">Semanal</button>
+          <button class="period-tab" data-period="monthly">Mensual</button>
         </div>
       </div>
 
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-label">Ventas Netas</div>
+          <div class="stat-header"><span class="stat-label">Ventas Netas</span></div>
           <div class="stat-value" id="totalSales">$0</div>
           <div class="stat-subtitle" id="totalSalesCount">0 comprobantes</div>
         </div>
-
         <div class="stat-card purple">
-          <div class="stat-label">Facturas</div>
+          <div class="stat-header"><span class="stat-label">Facturas</span></div>
           <div class="stat-value" id="totalFacturas">$0</div>
           <div class="stat-subtitle" id="facturasCount">0 facturas</div>
         </div>
-
         <div class="stat-card orange">
-          <div class="stat-label">Notas de Crédito</div>
+          <div class="stat-header"><span class="stat-label">Notas de Crédito</span></div>
           <div class="stat-value small" id="totalNC">$0</div>
           <div class="stat-subtitle" id="ncCount">0 N/C</div>
         </div>
-
         <div class="stat-card blue">
-          <div class="stat-label">Ticket Promedio</div>
+          <div class="stat-header"><span class="stat-label">Ticket Promedio</span></div>
           <div class="stat-value" id="avgTicket">$0</div>
           <div class="stat-subtitle">por factura</div>
         </div>
@@ -194,16 +190,15 @@
 
       <div class="charts-section">
         <div class="chart-card">
-          <div class="chart-title">Evolución de Ventas</div>
+          <div class="chart-header"><h3 class="chart-title">Evolución de Ventas</h3></div>
           <div class="chart-container"><canvas id="salesChart"></canvas></div>
         </div>
-
         <div class="chart-card">
-          <div class="chart-title">Ventas por Canal</div>
+          <div class="chart-header"><h3 class="chart-title">Ventas por Canal</h3></div>
           <div class="donut-container">
             <div class="donut-chart">
               <svg width="180" height="180" viewBox="0 0 180 180" id="donutChart">
-                <circle cx="90" cy="90" r="60" fill="none" stroke="var(--border-color)" stroke-width="28"></circle>
+                <circle cx="90" cy="90" r="60" fill="none" stroke="var(--border-color)" stroke-width="28" />
               </svg>
               <div class="donut-center">
                 <div class="donut-center-value" id="donutTotal">$0</div>
@@ -217,19 +212,18 @@
 
       <div class="charts-row-2">
         <div class="chart-card">
-          <div class="chart-title">Por Condición de Pago</div>
+          <div class="chart-header"><h3 class="chart-title">Por Condición de Pago</h3></div>
           <div class="chart-container"><canvas id="paymentChart"></canvas></div>
         </div>
-
         <div class="chart-card">
-          <div class="chart-title">Comparativa de Canales</div>
+          <div class="chart-header"><h3 class="chart-title">Comparativa de Canales</h3></div>
           <div class="chart-container"><canvas id="channelBarChart"></canvas></div>
         </div>
       </div>
 
       <div class="table-section">
         <div class="table-header">
-          <div class="table-title">Detalle por Canal de Venta</div>
+          <h3 class="table-title">Detalle por Canal de Venta</h3>
           <select class="filter-select" id="sortFilter">
             <option value="total-desc">Mayor importe</option>
             <option value="total-asc">Menor importe</option>
@@ -239,7 +233,9 @@
         </div>
         <table class="data-table">
           <thead>
-            <tr><th>Canal</th><th>Importe</th><th>Facturas</th><th>N/C</th><th>Neto</th><th>% del Total</th></tr>
+            <tr>
+              <th>Canal</th><th>Importe</th><th>Facturas</th><th>N/C</th><th>Neto</th><th>% del Total</th>
+            </tr>
           </thead>
           <tbody id="tableBody"></tbody>
         </table>
@@ -248,15 +244,16 @@
   </main>
 
   <script>
-    // =========================
-    // CONFIG
-    // =========================
-    const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbzyVyajKxgdLc7q2t0RbRAph0txZIXqUKXrnTHCvBVFyvpciW5FJJnnTJeqDWLdj0PlCQ/exec'; // <-- pegá tu URL real
-    const AUTO_REFRESH_SECONDS = 60;
+    // ==========================================================
+    // CONFIG - Apps Script WebApp (tu URL)
+    // ==========================================================
+    const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbzS5b1Ugm6XYeU0PkmvygfXKhsYoY8q7Qv20eiOkHd9aSZWZFNjz0dIWWztLBACBDblkA/exec';
+    const API_LIMIT = 20000;
+    const API_DAYS = 90;
 
-    // =========================
+    // ==========================================================
     // STATE
-    // =========================
+    // ==========================================================
     let rawData = [];
     let currentPeriod = 'daily';
     let salesChart = null;
@@ -277,129 +274,144 @@
       'PABLO': 'Otros'
     };
 
-    // =========================
+    // ==========================================================
     // UTILS
-    // =========================
+    // ==========================================================
     function formatCurrency(v) {
       const abs = Math.abs(v);
       if (abs >= 1000000) return (v < 0 ? '-' : '') + '$' + (abs / 1000000).toFixed(2) + 'M';
       return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(v);
     }
-
-    function formatNumber(v) {
-      return new Intl.NumberFormat('es-AR').format(Math.round(v));
-    }
-
-    function getChannelName(c) {
-      return CHANNEL_DISPLAY[c] || c || 'Otros';
-    }
+    function formatNumber(v) { return new Intl.NumberFormat('es-AR').format(Math.round(v)); }
+    function getChannelName(c) { return CHANNEL_DISPLAY[c] || c || 'Otros'; }
 
     function parseDate(s) {
       if (!s) return null;
       if (s instanceof Date) return s;
 
       if (typeof s === 'string') {
-        // yyyy-mm-dd
-        const d = new Date(s);
-        if (!isNaN(d.getTime())) return d;
-
-        // dd/mm/yyyy
-        const m = s.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-        if (m) return new Date(parseInt(m[3],10), parseInt(m[2],10)-1, parseInt(m[1],10));
+        // YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+          const [y, m, d] = s.split('-').map(Number);
+          const dt = new Date(y, m - 1, d);
+          return isNaN(dt.getTime()) ? null : dt;
+        }
+        // DD/MM/YYYY
+        if (s.includes('/')) {
+          const parts = s.split('/');
+          if (parts.length === 3) {
+            const dd = parseInt(parts[0], 10);
+            const mm = parseInt(parts[1], 10) - 1;
+            const yy = parseInt(parts[2], 10);
+            const dt = new Date(yy, mm, dd);
+            return isNaN(dt.getTime()) ? null : dt;
+          }
+        }
+        const d2 = new Date(s);
+        return isNaN(d2.getTime()) ? null : d2;
       }
       return null;
     }
 
-    // =========================
-    // UI STATE
-    // =========================
-    function setLoading() {
+    function toNumber(v) {
+      if (typeof v === 'number') return v;
+      if (v == null || v === '') return 0;
+      const s = String(v).replace(/\./g, '').replace(',', '.');
+      const n = parseFloat(s);
+      return isNaN(n) ? 0 : n;
+    }
+
+    // ==========================================================
+    // JSONP LOADER (sin CORS)
+    // ==========================================================
+    let jsonpScriptEl = null;
+    let jsonpTimer = null;
+
+    function loadFromWebApp() {
+      const btn = document.getElementById('btnReload');
+      btn.classList.add('loading');
+
       document.getElementById('loadingScreen').style.display = 'flex';
       document.getElementById('errorScreen').style.display = 'none';
       document.getElementById('dashboardContent').style.display = 'none';
-    }
-
-    function setError(msg) {
-      document.getElementById('loadingScreen').style.display = 'none';
-      document.getElementById('errorScreen').style.display = 'flex';
-      document.getElementById('dashboardContent').style.display = 'none';
-      document.getElementById('errorMsg').textContent = msg;
-    }
-
-    function setReady() {
-      document.getElementById('loadingScreen').style.display = 'none';
-      document.getElementById('errorScreen').style.display = 'none';
-      document.getElementById('dashboardContent').style.display = 'block';
-    }
-
-    // =========================
-    // JSONP LOADER (PRO)
-    // =========================
-    function loadFromGoogleSheets() {
-      const btn = document.getElementById('btnReload');
-      btn.classList.add('loading');
-      setLoading();
 
       const cbName = '__chemes_cb_' + Date.now();
 
-      window[cbName] = function(payload) {
+      // cleanup anterior
+      if (jsonpScriptEl && jsonpScriptEl.parentNode) jsonpScriptEl.parentNode.removeChild(jsonpScriptEl);
+      if (jsonpTimer) clearTimeout(jsonpTimer);
+
+      window[cbName] = function (payload) {
         try {
           if (!payload || payload.error) throw new Error(payload?.message || 'Respuesta inválida');
           if (!payload.data || !payload.data.length) throw new Error('Sin datos');
 
-          rawData = payload.data
-            .map(r => ({
+          rawData = payload.data.map(function (r) {
+            return {
               fecha: parseDate(r.fecha),
               tipo: String(r.tipo || 'FAC').trim(),
               nroComprobante: String(r.nroComprobante || '').trim(),
               canal: String(r.canal || 'Otros').trim(),
               cantidad: parseInt(r.cantidad, 10) || 0,
-              total: Number(r.total) || 0,
+              total: toNumber(r.total),
               condicionVenta: String(r.condicionVenta || '').trim()
-            }))
-            .filter(x => x.fecha); // solo válidos
+            };
+          }).filter(x => x.fecha); // evita fechas inválidas
 
-          // metadata (NO se pisa después)
+          // meta
           document.getElementById('dataRange').textContent =
             (payload.meta?.dateRange?.min || '--') + ' - ' + (payload.meta?.dateRange?.max || '--');
           document.getElementById('lastUpdate').textContent =
             new Date(payload.meta?.exportedAt || Date.now()).toLocaleString('es-AR');
 
-          setReady();
+          document.getElementById('loadingScreen').style.display = 'none';
+          document.getElementById('dashboardContent').style.display = 'block';
           updateDashboard();
+
         } catch (err) {
-          setError('Error: ' + err.message);
+          showError(err);
         } finally {
           btn.classList.remove('loading');
-          cleanupJSONP(cbName);
+          // cleanup callback global
+          try { delete window[cbName]; } catch (_) { window[cbName] = undefined; }
         }
       };
 
-      const url = DATA_API_URL + '?callback=' + encodeURIComponent(cbName) + '&_=' + Date.now();
-      const script = document.createElement('script');
-      script.src = url;
-      script.async = true;
-      script.onerror = function() {
-        setError('Error: no se pudo cargar el WebApp (verificá Deploy y permisos)');
-        btn.classList.remove('loading');
-        cleanupJSONP(cbName);
-      };
-      document.head.appendChild(script);
+      const url = DATA_API_URL
+        + '?callback=' + encodeURIComponent(cbName)
+        + '&format=json'
+        + '&limit=' + encodeURIComponent(String(API_LIMIT))
+        + '&days=' + encodeURIComponent(String(API_DAYS))
+        + '&_=' + Date.now();
+
+      jsonpScriptEl = document.createElement('script');
+      jsonpScriptEl.src = url;
+      jsonpScriptEl.async = true;
+      jsonpScriptEl.onerror = function () { showError(new Error('No se pudo cargar el script JSONP (red / permisos WebApp).')); };
+      document.head.appendChild(jsonpScriptEl);
+
+      jsonpTimer = setTimeout(function () {
+        showError(new Error('Timeout cargando datos (JSONP).'));
+      }, 20000);
     }
 
-    function cleanupJSONP(cbName) {
-      try { delete window[cbName]; } catch(_) { window[cbName] = undefined; }
-      // remover <script> que tenga ese callback
-      const scripts = document.querySelectorAll('script[src*="callback=' + cbName + '"]');
-      scripts.forEach(s => s.remove());
+    function showError(err) {
+      console.error(err);
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'flex';
+      document.getElementById('errorMsg').textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+      const btn = document.getElementById('btnReload');
+      btn.classList.remove('loading');
+      if (jsonpTimer) clearTimeout(jsonpTimer);
     }
 
-    // =========================
+    // ==========================================================
     // AGGREGATIONS
-    // =========================
+    // ==========================================================
     function aggregateByPeriod(data, period) {
       const grouped = {};
-      for (const r of data) {
+      for (let i = 0; i < data.length; i++) {
+        const r = data[i];
         const d = r.fecha;
         let key;
 
@@ -419,44 +431,42 @@
         if (r.tipo === 'N/C') grouped[key].nc++;
       }
 
-      return Object.keys(grouped)
-        .sort((a,b) => a.localeCompare(b))
-        .map(k => ({ periodo: k, ...grouped[k] }));
+      const result = Object.keys(grouped).map(k => ({ periodo: k, ...grouped[k] }));
+      result.sort((a, b) => a.periodo.localeCompare(b.periodo));
+      return result;
     }
 
     function aggregateByChannel(data) {
       const grouped = {};
-      for (const r of data) {
+      for (let i = 0; i < data.length; i++) {
+        const r = data[i];
         const k = r.canal || 'Otros';
         if (!grouped[k]) grouped[k] = { total: 0, facturas: 0, nc: 0, totalFac: 0, totalNC: 0 };
-
         grouped[k].total += r.total;
         if (r.tipo === 'FAC') { grouped[k].facturas++; grouped[k].totalFac += r.total; }
         if (r.tipo === 'N/C') { grouped[k].nc++; grouped[k].totalNC += r.total; }
       }
-
-      return Object.keys(grouped)
-        .map(k => ({ canal: k, ...grouped[k] }))
-        .sort((a,b) => b.total - a.total);
+      const result = Object.keys(grouped).map(k => ({ canal: k, ...grouped[k] }));
+      result.sort((a, b) => b.total - a.total);
+      return result;
     }
 
     function aggregateByPayment(data) {
       const grouped = {};
-      for (const r of data) {
+      for (let i = 0; i < data.length; i++) {
+        const r = data[i];
         if (r.tipo !== 'FAC') continue;
         const k = r.condicionVenta || 'Sin definir';
         grouped[k] = (grouped[k] || 0) + r.total;
       }
-
-      return Object.keys(grouped)
-        .map(k => ({ name: k, total: grouped[k] }))
-        .sort((a,b) => b.total - a.total)
-        .slice(0, 6);
+      const result = Object.keys(grouped).map(k => ({ name: k, total: grouped[k] }));
+      result.sort((a, b) => b.total - a.total);
+      return result.slice(0, 6);
     }
 
-    // =========================
-    // DASHBOARD
-    // =========================
+    // ==========================================================
+    // DASHBOARD UPDATE
+    // ==========================================================
     function updateDashboard() {
       if (!rawData.length) return;
 
@@ -464,10 +474,11 @@
       const comprobantes = {};
       const uniqueFacturas = {};
 
-      for (const r of rawData) {
+      for (let i = 0; i < rawData.length; i++) {
+        const r = rawData[i];
         if (r.tipo === 'FAC') { totalFac += r.total; uniqueFacturas[r.nroComprobante] = true; }
         if (r.tipo === 'N/C') { totalNC += r.total; ncCount++; }
-        comprobantes[r.nroComprobante] = true;
+        if (r.nroComprobante) comprobantes[r.nroComprobante] = true;
       }
 
       const totalSales = totalFac + totalNC;
@@ -492,17 +503,16 @@
     function updateSalesChart() {
       const agg = aggregateByPeriod(rawData, currentPeriod);
       const ctx = document.getElementById('salesChart').getContext('2d');
+      const labels = [], valores = [];
 
-      const labels = [];
-      const valores = [];
-
-      for (const r of agg) {
+      for (let i = 0; i < agg.length; i++) {
+        const r = agg[i];
         if (currentPeriod === 'monthly') {
           const parts = r.periodo.split('-');
-          const d = new Date(parseInt(parts[0],10), parseInt(parts[1],10) - 1);
+          const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
           labels.push(d.toLocaleDateString('es-AR', { month: 'short', year: '2-digit' }));
         } else {
-          labels.push(new Date(r.periodo).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }));
+          labels.push(new Date(r.periodo + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }));
         }
         valores.push(r.total);
       }
@@ -510,16 +520,24 @@
       if (salesChart) salesChart.destroy();
       salesChart = new Chart(ctx, {
         type: 'bar',
-        data: { labels, datasets: [{ data: valores, backgroundColor: 'rgba(0, 212, 170, 0.8)', borderRadius: 6 }] },
+        data: {
+          labels,
+          datasets: [{
+            label: 'Ventas',
+            data: valores,
+            backgroundColor: 'rgba(0, 212, 170, 0.8)',
+            borderRadius: 6
+          }]
+        },
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: c => formatCurrency(c.raw) } }
+            tooltip: { callbacks: { label: function (ctx) { return formatCurrency(ctx.raw); } } }
           },
           scales: {
             x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a' } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', callback: v => formatCurrency(v) } }
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', callback: function (v) { return formatCurrency(v); } } }
           }
         }
       });
@@ -527,18 +545,20 @@
 
     function updateDonutChart() {
       const chData = aggregateByChannel(rawData);
-      const positive = chData.filter(c => c.total > 0);
-      const total = positive.reduce((acc, x) => acc + x.total, 0);
+      let total = 0;
+      for (let i = 0; i < chData.length; i++) if (chData[i].total > 0) total += chData[i].total;
 
       document.getElementById('donutTotal').textContent = formatCurrency(total);
 
       const svg = document.getElementById('donutChart');
       svg.innerHTML = '<circle cx="90" cy="90" r="60" fill="none" stroke="#27272a" stroke-width="28"/>';
 
-      const circ = 2 * Math.PI * 60;
+      const positive = chData.filter(c => c.total > 0);
       let offset = 0;
+      const circ = 2 * Math.PI * 60;
 
-      positive.forEach((ch, i) => {
+      for (let i = 0; i < positive.length; i++) {
+        const ch = positive[i];
         const pct = total > 0 ? (ch.total / total) : 0;
         const dash = pct * circ;
 
@@ -554,18 +574,17 @@
         svg.appendChild(c);
 
         offset += dash;
-      });
+      }
 
       let legendHtml = '';
       for (let i = 0; i < positive.length && i < 6; i++) {
         const ch = positive[i];
-        legendHtml +=
-          '<div class="donut-legend-item">' +
-            '<div class="donut-legend-left">' +
-              '<div class="donut-legend-color" style="background:' + COLORS[i % COLORS.length] + '"></div>' +
-              '<span class="donut-legend-name">' + getChannelName(ch.canal) + '</span>' +
-            '</div>' +
-            '<span class="donut-legend-value">' + formatCurrency(ch.total) + '</span>' +
+        legendHtml += '<div class="donut-legend-item">' +
+          '<div class="donut-legend-left">' +
+          '<div class="donut-legend-color" style="background:' + COLORS[i % COLORS.length] + '"></div>' +
+          '<span class="donut-legend-name">' + getChannelName(ch.canal) + '</span>' +
+          '</div>' +
+          '<span class="donut-legend-value">' + formatCurrency(ch.total) + '</span>' +
           '</div>';
       }
       document.getElementById('donutLegend').innerHTML = legendHtml;
@@ -574,7 +593,6 @@
     function updatePaymentChart() {
       const data = aggregateByPayment(rawData);
       const ctx = document.getElementById('paymentChart').getContext('2d');
-
       if (paymentChart) paymentChart.destroy();
 
       const labels = data.map(x => x.name);
@@ -587,7 +605,7 @@
           responsive: true, maintainAspectRatio: false,
           plugins: {
             legend: { position: 'right', labels: { color: '#a1a1aa', boxWidth: 12, padding: 15 } },
-            tooltip: { callbacks: { label: c => c.label + ': ' + formatCurrency(c.raw) } }
+            tooltip: { callbacks: { label: function (ctx) { return ctx.label + ': ' + formatCurrency(ctx.raw); } } }
           }
         }
       });
@@ -596,7 +614,6 @@
     function updateChannelBarChart() {
       const data = aggregateByChannel(rawData).filter(c => c.total > 0).slice(0, 6);
       const ctx = document.getElementById('channelBarChart').getContext('2d');
-
       if (channelBarChart) channelBarChart.destroy();
 
       const labels = data.map(x => getChannelName(x.canal));
@@ -606,8 +623,7 @@
         type: 'bar',
         data: { labels, datasets: [{ data: valores, backgroundColor: COLORS.slice(0, data.length), borderRadius: 6 }] },
         options: {
-          indexAxis: 'y',
-          responsive: true, maintainAspectRatio: false,
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
             x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', callback: v => formatCurrency(v) } },
@@ -619,12 +635,14 @@
 
     function updateTable() {
       const channelData = aggregateByChannel(rawData);
-      const total = channelData.filter(x => x.total > 0).reduce((acc,x) => acc + x.total, 0);
+      let total = 0;
+      for (let i = 0; i < channelData.length; i++) if (channelData[i].total > 0) total += channelData[i].total;
 
       const sort = document.getElementById('sortFilter').value;
-      if (sort === 'total-asc') channelData.sort((a,b) => a.total - b.total);
-      else if (sort === 'qty-desc') channelData.sort((a,b) => b.facturas - a.facturas);
-      else if (sort === 'name-asc') channelData.sort((a,b) => (a.canal || '').localeCompare(b.canal || ''));
+      if (sort === 'total-asc') channelData.sort((a, b) => a.total - b.total);
+      else if (sort === 'qty-desc') channelData.sort((a, b) => b.facturas - a.facturas);
+      else if (sort === 'name-asc') channelData.sort((a, b) => a.canal.localeCompare(b.canal));
+      else channelData.sort((a, b) => b.total - a.total);
 
       const avatarCls = ['', 'purple', 'blue', 'orange'];
       let html = '';
@@ -635,43 +653,37 @@
         const initials = (c.canal || 'OT').substring(0, 2).toUpperCase();
         const totalClass = c.total >= 0 ? 'positive' : 'negative';
 
-        html +=
-          '<tr>' +
-            '<td><div class="channel-name"><div class="channel-avatar ' + avatarCls[i % 4] + '">' + initials + '</div><span>' + getChannelName(c.canal) + '</span></div></td>' +
-            '<td><span class="amount ' + totalClass + '">' + formatCurrency(c.total) + '</span></td>' +
-            '<td>' + formatNumber(c.facturas) + '</td>' +
-            '<td>' + formatNumber(c.nc) + '</td>' +
-            '<td><span class="amount">' + formatCurrency(c.totalFac + c.totalNC) + '</span></td>' +
-            '<td>' + (c.total > 0 ? pct + '%' : '-') + '</td>' +
+        html += '<tr>' +
+          '<td><div class="channel-name"><div class="channel-avatar ' + avatarCls[i % 4] + '">' + initials + '</div><span>' + getChannelName(c.canal) + '</span></div></td>' +
+          '<td><span class="amount ' + totalClass + '">' + formatCurrency(c.total) + '</span></td>' +
+          '<td>' + formatNumber(c.facturas) + '</td>' +
+          '<td>' + formatNumber(c.nc) + '</td>' +
+          '<td><span class="amount">' + formatCurrency(c.totalFac + c.totalNC) + '</span></td>' +
+          '<td>' + (c.total > 0 ? pct + '%' : '-') + '</td>' +
           '</tr>';
       }
-
       document.getElementById('tableBody').innerHTML = html;
     }
 
-    // =========================
+    // ==========================================================
     // EVENTS
-    // =========================
-    document.getElementById('btnReload').addEventListener('click', loadFromGoogleSheets);
-    document.getElementById('btnRetry').addEventListener('click', loadFromGoogleSheets);
-    document.getElementById('sortFilter').addEventListener('change', updateTable);
+    // ==========================================================
+    document.getElementById('sortFilter').onchange = updateTable;
 
-    document.querySelectorAll('.period-tab').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.period-tab').forEach(x => x.classList.remove('active'));
+    const periodTabs = document.querySelectorAll('.period-tab');
+    for (let i = 0; i < periodTabs.length; i++) {
+      periodTabs[i].onclick = function (e) {
+        for (let j = 0; j < periodTabs.length; j++) periodTabs[j].classList.remove('active');
         e.target.classList.add('active');
         currentPeriod = e.target.getAttribute('data-period');
         if (rawData.length) updateSalesChart();
-      });
-    });
+      };
+    }
 
-    // =========================
-    // INIT
-    // =========================
-    window.addEventListener('load', () => {
-      loadFromGoogleSheets();
-      setInterval(loadFromGoogleSheets, AUTO_REFRESH_SECONDS * 1000);
-    });
+    // init
+    window.onload = function () {
+      loadFromWebApp();
+    };
   </script>
 </body>
 </html>
