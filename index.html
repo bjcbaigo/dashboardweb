@@ -844,32 +844,27 @@
     function updateDashboard() {
       if (!rawData.length) return;
 
-      // Calcular totales
-      let totalFac = 0, totalNC = 0, facCount = 0, ncCount = 0;
+      // Calcular totales usando comprobantes únicos
+      let totalFac = 0, totalNC = 0;
       const comprobantes = new Set();
+      const uniqueFacturas = new Set();
+      const uniqueNC = new Set();
 
       for (const r of rawData) {
         comprobantes.add(r.nroComprobante);
         if (r.tipo === 'FAC') {
           totalFac += r.total;
-          facCount++;
+          uniqueFacturas.add(r.nroComprobante);
         }
         if (r.tipo === 'N/C') {
           totalNC += r.total;
-          ncCount++;
+          uniqueNC.add(r.nroComprobante);
         }
       }
 
       const totalSales = totalFac + totalNC;
-
-      // Facturas únicas para ticket promedio
-      const uniqueFacturas = new Map();
-      for (const r of rawData) {
-        if (r.tipo === 'FAC') {
-          uniqueFacturas.set(r.nroComprobante, (uniqueFacturas.get(r.nroComprobante) || 0) + r.total);
-        }
-      }
       const facturasUnicas = uniqueFacturas.size;
+      const ncUnicas = uniqueNC.size;
       const avgTicket = facturasUnicas > 0 ? totalFac / facturasUnicas : 0;
 
       // Actualizar cards
@@ -878,7 +873,7 @@
       document.getElementById('totalFacturas').textContent = formatCurrency(totalFac);
       document.getElementById('facturasCount').textContent = facturasUnicas + ' facturas';
       document.getElementById('totalNC').textContent = formatCurrency(totalNC);
-      document.getElementById('ncCount').textContent = ncCount + ' N/C';
+      document.getElementById('ncCount').textContent = ncUnicas + ' N/C';
       document.getElementById('avgTicket').textContent = formatCurrency(avgTicket);
 
       // Actualizar gráficos
