@@ -599,6 +599,7 @@
     let filteredData = [];
     let compareData = [];
     let evolutionChart = null;
+    let maxDataDate = null; // Fecha más reciente de los datos
 
     const COLORS = ['#00d4aa', '#7c3aed', '#3b82f6', '#f59e0b', '#ef4444', '#14b8a6', '#f97316', '#6366f1'];
 
@@ -658,24 +659,25 @@
     }
 
     // =========================================================================
-    // DATE RANGES
+    // DATE RANGES - Usa la fecha más reciente de los datos como referencia
     // =========================================================================
     function getDateRange(period) {
-      const now = new Date();
+      // Usar la fecha más reciente de los datos, no la fecha del sistema
+      const now = maxDataDate || new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
       switch (period) {
         case 'today':
-          return { start: today, end: new Date(today.getTime() + 86400000), label: 'Hoy' };
+          return { start: today, end: new Date(today.getTime() + 86400000), label: 'Último día (' + today.toLocaleDateString('es-AR') + ')' };
         case 'week':
           const dow = today.getDay();
           const mon = new Date(today);
           mon.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
-          return { start: mon, end: new Date(now.getTime() + 86400000), label: 'Esta Semana' };
+          return { start: mon, end: new Date(today.getTime() + 86400000), label: 'Semana del ' + mon.toLocaleDateString('es-AR') };
         case 'month':
           return { 
             start: new Date(now.getFullYear(), now.getMonth(), 1), 
-            end: new Date(now.getTime() + 86400000),
+            end: new Date(today.getTime() + 86400000),
             label: now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
           };
         case 'lastmonth':
@@ -687,13 +689,13 @@
         case '3months':
           return { 
             start: new Date(now.getFullYear(), now.getMonth() - 2, 1), 
-            end: new Date(now.getTime() + 86400000),
+            end: new Date(today.getTime() + 86400000),
             label: 'Últimos 3 Meses'
           };
         case '6months':
           return { 
             start: new Date(now.getFullYear(), now.getMonth() - 5, 1), 
-            end: new Date(now.getTime() + 86400000),
+            end: new Date(today.getTime() + 86400000),
             label: 'Últimos 6 Meses'
           };
         default:
@@ -777,6 +779,9 @@
             total: Number(r.total) || 0
           })).filter(r => r.fecha);
 
+          // Calcular la fecha más reciente de los datos
+          maxDataDate = rawData.reduce((max, r) => r.fecha > max ? r.fecha : max, rawData[0].fecha);
+          
           document.getElementById('lastUpdate').textContent = new Date().toLocaleString('es-AR');
           populateChannels();
           setReady();
