@@ -719,8 +719,8 @@
               tipo: String(r.tipo || 'FAC').trim(),
               nroComprobante: String(r.nroComprobante || '').trim(),
               canal: String(r.canal || 'Otros').trim(),
-              cantidad: parseInt(r.cantidad, 10) || 0,
-              total: Number(r.total) || 0,
+              cantidad: toNumber(r.cantidad),
+              total:    toNumber(r.total),
               condicionVenta: String(r.condicionVenta || '').trim()
             }))
             .filter(x => x.fecha);
@@ -1093,6 +1093,14 @@
       document.getElementById('tableBody').innerHTML = html;
     }
 
+function toNumber(v){
+  if (typeof v === 'number') return v;
+  if (v == null || v === '') return 0;
+  const n = Number(String(v).replace(/\./g,'').replace(',', '.'));
+  return isNaN(n) ? 0 : n;
+}
+
+    
     // =========================================================================
     // EVENT LISTENERS
     // =========================================================================
