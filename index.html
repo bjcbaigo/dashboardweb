@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -29,7 +28,7 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+
     body {
       font-family: 'DM Sans', sans-serif;
       background: var(--bg-primary);
@@ -60,7 +59,7 @@
     }
 
     .logo { display: flex; align-items: center; gap: 0.75rem; }
-    
+
     .logo-icon {
       width: 40px;
       height: 40px;
@@ -72,16 +71,17 @@
       font-weight: 700;
       font-size: 1rem;
     }
-    
+
     .logo-text { font-size: 1.25rem; font-weight: 700; }
     .logo-text span { color: var(--accent-primary); }
 
     .header-right { display: flex; align-items: center; gap: 1rem; }
-    
+
     .last-update {
       font-family: 'Space Mono', monospace;
       font-size: 0.7rem;
       color: var(--text-muted);
+      white-space: nowrap;
     }
     .last-update span { color: var(--accent-primary); }
 
@@ -99,13 +99,14 @@
       cursor: pointer;
       font-family: inherit;
       transition: all 0.2s;
+      white-space: nowrap;
     }
-    
+
     .btn-reload:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
     .btn-reload.loading { pointer-events: none; opacity: 0.6; }
     .btn-reload svg { width: 14px; height: 14px; }
     .btn-reload.loading svg { animation: spin 1s linear infinite; }
-    
+
     @keyframes spin { to { transform: rotate(360deg); } }
 
     main {
@@ -124,7 +125,7 @@
       min-height: 50vh;
       gap: 1rem;
     }
-    
+
     .loading-spinner {
       width: 40px;
       height: 40px;
@@ -133,9 +134,9 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-    
+
     .loading-text { color: var(--text-secondary); font-size: 0.85rem; }
-    
+
     .error-msg {
       background: rgba(239, 68, 68, 0.1);
       border: 1px solid rgba(239, 68, 68, 0.3);
@@ -143,6 +144,7 @@
       padding: 1rem 1.5rem;
       border-radius: 10px;
       text-align: center;
+      max-width: 800px;
     }
 
     /* Controls */
@@ -428,6 +430,7 @@
       .kpi-grid { grid-template-columns: 1fr; }
       .controls-bar { flex-direction: column; align-items: stretch; }
       .period-info { margin-left: 0; text-align: left; margin-top: 0.5rem; }
+      .last-update { white-space: normal; }
     }
   </style>
 </head>
@@ -463,18 +466,18 @@
     </div>
 
     <div id="dashboard" style="display:none;">
-      
+
       <!-- Controls -->
       <div class="controls-bar">
         <div class="control-group">
-          <label class="control-label">Período</label>
+          <label class="control-label">Periodo</label>
           <select class="control-select" id="periodSelect">
             <option value="today">Hoy</option>
             <option value="week">Esta Semana</option>
             <option value="month" selected>Mes Actual</option>
             <option value="lastmonth">Mes Anterior</option>
-            <option value="3months">Últimos 3 Meses</option>
-            <option value="6months">Últimos 6 Meses</option>
+            <option value="3months">Ultimos 3 Meses</option>
+            <option value="6months">Ultimos 6 Meses</option>
             <option value="all">Todo</option>
           </select>
         </div>
@@ -530,7 +533,7 @@
       <div class="charts-grid">
         <div class="chart-card">
           <div class="chart-header">
-            <h3 class="chart-title">Evolución de Ventas</h3>
+            <h3 class="chart-title">Evolucion de Ventas</h3>
             <select class="chart-select" id="groupSelect">
               <option value="daily">Diario</option>
               <option value="weekly">Semanal</option>
@@ -577,7 +580,7 @@
               <th>Facturas</th>
               <th>N/C</th>
               <th>Anterior</th>
-              <th>Variación</th>
+              <th>Variacion</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -600,7 +603,7 @@
     let filteredData = [];
     let compareData = [];
     let evolutionChart = null;
-    let maxDataDate = null; // Fecha más reciente de los datos
+    let maxDataDate = null; // Fecha mas reciente de los datos
 
     const COLORS = ['#00d4aa', '#7c3aed', '#3b82f6', '#f59e0b', '#ef4444', '#14b8a6', '#f97316', '#6366f1'];
 
@@ -612,7 +615,7 @@
       'ICBC MALL': { name: 'ICBC Mall', bg: 'bg-icbc', abbr: 'IC' },
       'TIENDA CLIC': { name: 'Tienda Clic', bg: 'bg-clic', abbr: 'TI' },
       'COMAFI': { name: 'Comafi', bg: 'bg-comafi', abbr: 'CO' },
-      'TIENDRA MACRO': { name: 'Tienda Macro', bg: 'bg-macro', abbr: 'TM' }
+      'TIENDRA MACRO': { name: 'Tienda Macro', bg: 'bg-macro', abbr: 'TM' } // (si en tu data es TIENDA MACRO, corregilo)
     };
 
     // =========================================================================
@@ -629,29 +632,50 @@
       return new Intl.NumberFormat('es-AR').format(Math.round(v));
     }
 
+    // Parse robusto: DD/MM, MM/DD, ISO, con o sin hora
     function parseDate(s) {
       if (!s) return null;
       if (s instanceof Date) return s;
+
       s = String(s).trim();
-      
-      // M/D/YYYY H:MM:SS AM/PM
-      let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (m) {
-        const d = new Date(+m[3], +m[1] - 1, +m[2]);
-        if (!isNaN(d)) return d;
-      }
-      
-      // YYYY-MM-DD
+      if (!s) return null;
+
+      // ISO: YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss...
       if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
         const d = new Date(s.substring(0, 10) + 'T00:00:00');
-        if (!isNaN(d)) return d;
+        return isNaN(d) ? null : d;
       }
-      
+
+      // YYYY/MM/DD
+      let m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+      if (m) {
+        const d = new Date(+m[1], +m[2] - 1, +m[3]);
+        return isNaN(d) ? null : d;
+      }
+
+      // DD/MM/YYYY or MM/DD/YYYY (con o sin hora)
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (m) {
+        let a = +m[1], b = +m[2], y = +m[3];
+
+        // Heuristica:
+        // - si a > 12 => DD/MM
+        // - si b > 12 => MM/DD
+        // - si ambos <=12 => asumimos DD/MM (Argentina)
+        let day, month;
+        if (a > 12) { day = a; month = b; }
+        else if (b > 12) { month = a; day = b; }
+        else { day = a; month = b; }
+
+        const d = new Date(y, month - 1, day);
+        return isNaN(d) ? null : d;
+      }
+
       return null;
     }
 
     function getChannelConfig(c) {
-      return CHANNEL_CONFIG[c] || { name: c, bg: 'bg-other', abbr: c.substring(0, 2).toUpperCase() };
+      return CHANNEL_CONFIG[c] || { name: c, bg: 'bg-other', abbr: String(c || 'OT').substring(0, 2).toUpperCase() };
     }
 
     function calcChange(curr, prev) {
@@ -660,92 +684,113 @@
     }
 
     // =========================================================================
-    // DATE RANGES - Usa la fecha más reciente de los datos como referencia
+    // DATE HELPERS + RANGES
     // =========================================================================
+    const DAY_MS = 86400000;
+
+    function startOfDay(d) {
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+    function addDays(d, days) {
+      return new Date(d.getTime() + days * DAY_MS);
+    }
+    function startOfISOWeek(d) {
+      // lunes
+      const x = startOfDay(d);
+      const day = (x.getDay() + 6) % 7; // lunes=0 ... domingo=6
+      return addDays(x, -day);
+    }
+
     function getDateRange(period) {
-      // Usar la fecha más reciente de los datos, no la fecha del sistema
-      const now = maxDataDate || new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+      const ref = maxDataDate ? startOfDay(maxDataDate) : startOfDay(new Date());
+      const endExclusive = addDays(ref, 1); // include "ref" day, exclusive next day
+
       switch (period) {
         case 'today':
-          return { start: today, end: new Date(today.getTime() + 86400000), label: 'Último día (' + today.toLocaleDateString('es-AR') + ')' };
-        case 'week':
-          const dow = today.getDay();
-          const mon = new Date(today);
-          mon.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
-          return { start: mon, end: new Date(today.getTime() + 86400000), label: 'Semana del ' + mon.toLocaleDateString('es-AR') };
-        case 'month':
-          return { 
-            start: new Date(now.getFullYear(), now.getMonth(), 1), 
-            end: new Date(today.getTime() + 86400000),
-            label: now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+          return { start: ref, end: endExclusive, label: 'Ultimo dia (' + ref.toLocaleDateString('es-AR') + ')' };
+
+        case 'week': {
+          const mon = startOfISOWeek(ref);
+          return { start: mon, end: endExclusive, label: 'Semana desde ' + mon.toLocaleDateString('es-AR') };
+        }
+
+        case 'month': {
+          const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
+          return {
+            start,
+            end: endExclusive,
+            label: ref.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) + ' (a la fecha)'
           };
-        case 'lastmonth':
-          return { 
-            start: new Date(now.getFullYear(), now.getMonth() - 1, 1), 
-            end: new Date(now.getFullYear(), now.getMonth(), 1),
-            label: new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+        }
+
+        case 'lastmonth': {
+          const start = new Date(ref.getFullYear(), ref.getMonth() - 1, 1);
+          const end = new Date(ref.getFullYear(), ref.getMonth(), 1);
+          return {
+            start,
+            end,
+            label: start.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) + ' (completo)'
           };
-        case '3months':
-          return { 
-            start: new Date(now.getFullYear(), now.getMonth() - 2, 1), 
-            end: new Date(today.getTime() + 86400000),
-            label: 'Últimos 3 Meses'
-          };
-        case '6months':
-          return { 
-            start: new Date(now.getFullYear(), now.getMonth() - 5, 1), 
-            end: new Date(today.getTime() + 86400000),
-            label: 'Últimos 6 Meses'
-          };
+        }
+
+        case '3months': {
+          const start = new Date(ref.getFullYear(), ref.getMonth() - 2, 1);
+          return { start, end: endExclusive, label: 'Ultimos 3 meses (a la fecha)' };
+        }
+
+        case '6months': {
+          const start = new Date(ref.getFullYear(), ref.getMonth() - 5, 1);
+          return { start, end: endExclusive, label: 'Ultimos 6 meses (a la fecha)' };
+        }
+
         default:
-          return { start: null, end: null, label: 'Todo el Período' };
+          return { start: null, end: null, label: 'Todo el Periodo' };
       }
     }
 
     function getCompareRange(period) {
-      const now = maxDataDate || new Date();
-      
+      const main = getDateRange(period);
+      if (!main.start) return { start: null, end: null, label: 'N/A' };
+
+      const durationDays = Math.round((main.end.getTime() - main.start.getTime()) / DAY_MS);
+
       switch (period) {
-        case 'month':
-          // Mes actual vs mes anterior completo
-          return { 
-            start: new Date(now.getFullYear(), now.getMonth() - 1, 1), 
-            end: new Date(now.getFullYear(), now.getMonth(), 1),
-            label: new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+        case 'month': {
+          // Mes anterior, misma ventana (mismo numero de dias)
+          const prevStart = new Date(main.start.getFullYear(), main.start.getMonth() - 1, 1);
+          const prevEnd = addDays(prevStart, durationDays);
+          return { start: prevStart, end: prevEnd, label: 'Mes anterior (misma ventana)' };
+        }
+
+        case 'week': {
+          const prevStart = addDays(main.start, -7);
+          const prevEnd = addDays(prevStart, durationDays);
+          return { start: prevStart, end: prevEnd, label: 'Semana anterior (misma ventana)' };
+        }
+
+        case 'today': {
+          const prevStart = addDays(main.start, -1);
+          const prevEnd = addDays(prevStart, 1);
+          return { start: prevStart, end: prevEnd, label: 'Ayer' };
+        }
+
+        case 'lastmonth': {
+          // Mes anterior completo vs mes anterior a ese
+          const prevStart = new Date(main.start.getFullYear(), main.start.getMonth() - 1, 1);
+          const prevEnd = new Date(main.start.getFullYear(), main.start.getMonth(), 1);
+          return {
+            start: prevStart,
+            end: prevEnd,
+            label: prevStart.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) + ' (completo)'
           };
-        case 'lastmonth':
-          // Mes anterior vs el mes antes de ese
-          return { 
-            start: new Date(now.getFullYear(), now.getMonth() - 2, 1), 
-            end: new Date(now.getFullYear(), now.getMonth() - 1, 1),
-            label: new Date(now.getFullYear(), now.getMonth() - 2, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
-          };
-        case '3months':
-          // 3 meses vs 3 meses anteriores
-          return { 
-            start: new Date(now.getFullYear(), now.getMonth() - 5, 1), 
-            end: new Date(now.getFullYear(), now.getMonth() - 2, 1),
-            label: '3 meses anteriores'
-          };
-        case '6months':
-          // 6 meses vs 6 meses anteriores
-          return { 
-            start: new Date(now.getFullYear(), now.getMonth() - 11, 1), 
-            end: new Date(now.getFullYear(), now.getMonth() - 5, 1),
-            label: '6 meses anteriores'
-          };
-        default:
-          // Para otros períodos, usar el período anterior de igual duración
-          const { start, end } = getDateRange(period);
-          if (!start) return { start: null, end: null, label: 'N/A' };
-          const duration = end.getTime() - start.getTime();
-          return { 
-            start: new Date(start.getTime() - duration), 
-            end: start,
-            label: 'Período anterior'
-          };
+        }
+
+        default: {
+          // fallback: misma duracion, inmediatamente anterior
+          const prevEnd = main.start;
+          const prevStart = addDays(prevEnd, -durationDays);
+          return { start: prevStart, end: prevEnd, label: 'Periodo anterior (misma ventana)' };
+        }
       }
     }
 
@@ -805,13 +850,17 @@
             total: Number(r.total) || 0
           })).filter(r => r.fecha);
 
-          // Calcular la fecha más reciente de los datos
+          if (!rawData.length) {
+            throw new Error('Datos recibidos pero sin fechas validas. Revisar formato de fecha o BOM en CSV.');
+          }
+
+          // Calcular fecha mas reciente
           maxDataDate = rawData.reduce((max, r) => r.fecha > max ? r.fecha : max, rawData[0].fecha);
-          console.log('Fecha máxima de datos:', maxDataDate);
-          console.log('Mes detectado:', maxDataDate.getMonth() + 1, '/', maxDataDate.getFullYear());
-          
-          document.getElementById('lastUpdate').textContent = 
-            'Datos hasta: ' + maxDataDate.toLocaleDateString('es-AR') + ' | Cargado: ' + new Date().toLocaleTimeString('es-AR');
+
+          document.getElementById('lastUpdate').textContent =
+            'Datos hasta: ' + maxDataDate.toLocaleDateString('es-AR') +
+            ' | Cargado: ' + new Date().toLocaleTimeString('es-AR');
+
           populateChannels();
           setReady();
           applyFilters();
@@ -825,7 +874,7 @@
 
       const script = document.createElement('script');
       script.src = DATA_API_URL + '?callback=' + cb + '&_=' + Date.now();
-      script.onerror = () => { setError('Error de conexión'); btn.classList.remove('loading'); };
+      script.onerror = () => { setError('Error de conexion'); btn.classList.remove('loading'); };
       document.head.appendChild(script);
     }
 
@@ -872,13 +921,13 @@
           unidades += Math.abs(r.cantidad);
           docs.add(r.nroComprobante);
         } else if (r.tipo === 'N/C') {
+          // si tu CSV ya trae total negativo, esto resta; si no, deberias forzarlo a negativo en origen
           importe += r.total;
         }
       });
 
       const numDocs = docs.size;
       const ticket = numDocs > 0 ? importe / numDocs : 0;
-
       return { importe, unidades, numDocs, ticket };
     }
 
@@ -888,7 +937,7 @@
       data.forEach(r => {
         const c = r.canal;
         if (!grouped[c]) grouped[c] = { importe: 0, facturas: new Set(), nc: new Set(), unidades: 0 };
-        
+
         if (r.tipo === 'FAC') {
           grouped[c].importe += r.total;
           grouped[c].facturas.add(r.nroComprobante);
@@ -930,7 +979,7 @@
     function setKPI(valId, prevId, changeId, curr, prev, isCurrency) {
       document.getElementById(valId).textContent = isCurrency ? formatCurrency(curr) : formatNumber(curr);
       document.getElementById(prevId).textContent = isCurrency ? formatCurrency(prev) : formatNumber(prev);
-      
+
       const pct = calcChange(curr, prev);
       const el = document.getElementById(changeId);
       el.textContent = (pct >= 0 ? '+' : '') + Math.round(pct) + '%';
@@ -977,38 +1026,48 @@
 
     function getGroupKey(date, group) {
       if (group === 'monthly') return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+
       if (group === 'weekly') {
-        const d = new Date(date);
-        d.setDate(d.getDate() - d.getDay());
-        return d.toISOString().split('T')[0];
+        // Semana ISO: lunes
+        const mon = startOfISOWeek(date);
+        return mon.toISOString().split('T')[0];
       }
+
       return date.toISOString().split('T')[0];
     }
 
     function formatGroupLabel(key, group) {
       if (group === 'monthly') {
         const [y, m] = key.split('-');
-        return new Date(y, m - 1).toLocaleDateString('es-AR', { month: 'short' });
+        return new Date(+y, +m - 1, 1).toLocaleDateString('es-AR', { month: 'short' });
       }
-      return new Date(key).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
+      // daily/weekly (key es YYYY-MM-DD)
+      return new Date(key + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
     }
 
     function updateDonut() {
       const byChannel = calcByChannel(filteredData);
-      const total = byChannel.reduce((acc, c) => acc + Math.max(0, c.importe), 0);
+
+      const positives = byChannel.filter(c => c.importe > 0);
+      const total = positives.reduce((acc, c) => acc + c.importe, 0);
 
       document.getElementById('donutValue').textContent = formatCurrency(total);
 
       const svg = document.getElementById('donutSvg');
       svg.innerHTML = '<circle cx="80" cy="80" r="55" fill="none" stroke="#27272a" stroke-width="22"/>';
 
+      if (total <= 0) {
+        document.getElementById('donutLegend').innerHTML = '<div class="legend-item"><span class="legend-name">Sin ventas en el periodo</span><span class="legend-value">$0</span></div>';
+        return;
+      }
+
       let offset = 0;
       const circ = 2 * Math.PI * 55;
 
-      byChannel.filter(c => c.importe > 0).slice(0, 8).forEach((ch, i) => {
+      positives.slice(0, 8).forEach((ch, i) => {
         const pct = ch.importe / total;
         const dash = pct * circ;
-        
+
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', '80');
         circle.setAttribute('cy', '80');
@@ -1019,12 +1078,12 @@
         circle.setAttribute('stroke-dasharray', `${dash} ${circ}`);
         circle.setAttribute('stroke-dashoffset', -offset);
         svg.appendChild(circle);
-        
+
         offset += dash;
       });
 
       const legend = document.getElementById('donutLegend');
-      legend.innerHTML = byChannel.filter(c => c.importe > 0).slice(0, 6).map((ch, i) => {
+      legend.innerHTML = positives.slice(0, 6).map((ch, i) => {
         const cfg = getChannelConfig(ch.canal);
         return `
           <div class="legend-item">
@@ -1044,7 +1103,7 @@
       const prevMap = Object.fromEntries(prevByChannel.map(c => [c.canal, c]));
 
       const sort = document.getElementById('tableSort').value;
-      
+
       const withChange = currByChannel.map(c => {
         const prev = prevMap[c.canal] || { importe: 0 };
         return { ...c, prevImporte: prev.importe, change: calcChange(c.importe, prev.importe) };
@@ -1058,7 +1117,7 @@
         const cfg = getChannelConfig(c.canal);
         const changeClass = c.change >= 0 ? 'up' : 'down';
         const changeText = (c.change >= 0 ? '+' : '') + Math.round(c.change) + '%';
-        
+
         return `
           <tr>
             <td>
