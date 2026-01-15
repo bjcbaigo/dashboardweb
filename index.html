@@ -81,7 +81,6 @@
       font-family: 'Space Mono', monospace;
       font-size: 0.7rem;
       color: var(--text-muted);
-      white-space: nowrap;
     }
     .last-update span { color: var(--accent-primary); }
 
@@ -99,7 +98,6 @@
       cursor: pointer;
       font-family: inherit;
       transition: all 0.2s;
-      white-space: nowrap;
     }
 
     .btn-reload:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
@@ -144,7 +142,6 @@
       padding: 1rem 1.5rem;
       border-radius: 10px;
       text-align: center;
-      max-width: 800px;
     }
 
     /* Controls */
@@ -430,7 +427,6 @@
       .kpi-grid { grid-template-columns: 1fr; }
       .controls-bar { flex-direction: column; align-items: stretch; }
       .period-info { margin-left: 0; text-align: left; margin-top: 0.5rem; }
-      .last-update { white-space: normal; }
     }
   </style>
 </head>
@@ -605,6 +601,9 @@
     let evolutionChart = null;
     let maxDataDate = null; // Fecha mas reciente de los datos
 
+    // Detecta formato predominante de fechas
+    let DATE_STYLE = null; // 'MDY' o 'DMY'
+
     const COLORS = ['#00d4aa', '#7c3aed', '#3b82f6', '#f59e0b', '#ef4444', '#14b8a6', '#f97316', '#6366f1'];
 
     const CHANNEL_CONFIG = {
@@ -615,7 +614,7 @@
       'ICBC MALL': { name: 'ICBC Mall', bg: 'bg-icbc', abbr: 'IC' },
       'TIENDA CLIC': { name: 'Tienda Clic', bg: 'bg-clic', abbr: 'TI' },
       'COMAFI': { name: 'Comafi', bg: 'bg-comafi', abbr: 'CO' },
-      'TIENDRA MACRO': { name: 'Tienda Macro', bg: 'bg-macro', abbr: 'TM' } // (si en tu data es TIENDA MACRO, corregilo)
+      'TIENDRA MACRO': { name: 'Tienda Macro', bg: 'bg-macro', abbr: 'TM' }
     };
 
     // =========================================================================
@@ -632,72 +631,59 @@
       return new Intl.NumberFormat('es-AR').format(Math.round(v));
     }
 
-    
-  // Detecta formato predominante en el dataset
-let DATE_STYLE = null; // 'MDY' o 'DMY'
+    function detectDateStyle(samples) {
+      let mdy = 0, dmy = 0;
 
-// Detecta si el dataset parece venir en MDY o DMY
-function detectDateStyle(samples) {
-  let mdy = 0, dmy = 0;
+      for (const s0 of samples) {
+        if (!s0) continue;
+        const s = String(s0).trim();
+        const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (!m) continue;
 
-  for (const s0 of samples) {
-    if (!s0) continue;
-    const s = String(s0).trim();
+        const a = parseInt(m[1], 10);
+        const b = parseInt(m[2], 10);
 
-    // ejemplo: 7/14/2025 12:00:00 AM  o 14/7/2025
-    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (!m) continue;
+        if (a > 12 && b <= 12) dmy++;
+        else if (b > 12 && a <= 12) mdy++;
+      }
 
-    const a = parseInt(m[1], 10);
-    const b = parseInt(m[2], 10);
+      if (mdy === 0 && dmy === 0) return 'DMY'; // default AR
+      return (mdy >= dmy) ? 'MDY' : 'DMY';
+    }
 
-    // Si el primero > 12, es DMY
-    if (a > 12 && b <= 12) dmy++;
-    // Si el segundo > 12, es MDY
-    else if (b > 12 && a <= 12) mdy++;
-  }
+    function parseDate(s) {
+      if (!s) return null;
+      if (s instanceof Date) return s;
 
-  // si no se puede inferir, por defecto DMY (Argentina)
-  if (mdy === 0 && dmy === 0) return 'DMY';
-  return (mdy >= dmy) ? 'MDY' : 'DMY';
-}
+      s = String(s).trim();
 
-// Parse robusto con soporte a MDY/DMY + AM/PM + ISO
-function parseDate(s) {
-  if (!s) return null;
-  if (s instanceof Date) return s;
+      // ISO: YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        const d = new Date(s.substring(0, 10) + 'T00:00:00');
+        return isNaN(d) ? null : d;
+      }
 
-  s = String(s).trim();
+      // Slash: ??/??/YYYY (con o sin hora / AMPM)
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (m) {
+        const p1 = parseInt(m[1], 10);
+        const p2 = parseInt(m[2], 10);
+        const y  = parseInt(m[3], 10);
 
-  // ISO: YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-    const d = new Date(s.substring(0, 10) + 'T00:00:00');
-    return isNaN(d) ? null : d;
-  }
+        const style = DATE_STYLE || ((p1 > 12 && p2 <= 12) ? 'DMY' : (p2 > 12 && p1 <= 12) ? 'MDY' : 'DMY');
 
-  // Slash: ??/??/YYYY (con o sin hora / AMPM)
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m) {
-    const p1 = parseInt(m[1], 10);
-    const p2 = parseInt(m[2], 10);
-    const y  = parseInt(m[3], 10);
+        const month = (style === 'MDY') ? (p1 - 1) : (p2 - 1);
+        const day   = (style === 'MDY') ? p2 : p1;
 
-    // si todavía no detectamos estilo, asumir por reglas (o DMY por default)
-    const style = DATE_STYLE || ((p1 > 12 && p2 <= 12) ? 'DMY' : (p2 > 12 && p1 <= 12) ? 'MDY' : 'DMY');
+        const d = new Date(y, month, day);
+        return isNaN(d) ? null : d;
+      }
 
-    const month = (style === 'MDY') ? (p1 - 1) : (p2 - 1);
-    const day   = (style === 'MDY') ? p2 : p1;
-
-    const d = new Date(y, month, day);
-    return isNaN(d) ? null : d;
-  }
-
-  return null;
-}
-
+      return null;
+    }
 
     function getChannelConfig(c) {
-      return CHANNEL_CONFIG[c] || { name: c, bg: 'bg-other', abbr: String(c || 'OT').substring(0, 2).toUpperCase() };
+      return CHANNEL_CONFIG[c] || { name: c, bg: 'bg-other', abbr: (c || 'OT').substring(0, 2).toUpperCase() };
     }
 
     function calcChange(curr, prev) {
@@ -706,112 +692,83 @@ function parseDate(s) {
     }
 
     // =========================================================================
-    // DATE HELPERS + RANGES
+    // DATE RANGES - Usa la fecha mas reciente de los datos como referencia
     // =========================================================================
-    const DAY_MS = 86400000;
-
-    function startOfDay(d) {
-      return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    }
-    function addDays(d, days) {
-      return new Date(d.getTime() + days * DAY_MS);
-    }
-    function startOfISOWeek(d) {
-      // lunes
-      const x = startOfDay(d);
-      const day = (x.getDay() + 6) % 7; // lunes=0 ... domingo=6
-      return addDays(x, -day);
-    }
-
     function getDateRange(period) {
-      const ref = maxDataDate ? startOfDay(maxDataDate) : startOfDay(new Date());
-      const endExclusive = addDays(ref, 1); // include "ref" day, exclusive next day
+      const now = maxDataDate || new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
       switch (period) {
         case 'today':
-          return { start: ref, end: endExclusive, label: 'Ultimo dia (' + ref.toLocaleDateString('es-AR') + ')' };
-
+          return { start: today, end: new Date(today.getTime() + 86400000), label: 'Ultimo dia (' + today.toLocaleDateString('es-AR') + ')' };
         case 'week': {
-          const mon = startOfISOWeek(ref);
-          return { start: mon, end: endExclusive, label: 'Semana desde ' + mon.toLocaleDateString('es-AR') };
+          const dow = today.getDay();
+          const mon = new Date(today);
+          mon.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+          return { start: mon, end: new Date(today.getTime() + 86400000), label: 'Semana del ' + mon.toLocaleDateString('es-AR') };
         }
-
-        case 'month': {
-          const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
+        case 'month':
           return {
-            start,
-            end: endExclusive,
-            label: ref.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) + ' (a la fecha)'
+            start: new Date(now.getFullYear(), now.getMonth(), 1),
+            end: new Date(today.getTime() + 86400000),
+            label: now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
           };
-        }
-
-        case 'lastmonth': {
-          const start = new Date(ref.getFullYear(), ref.getMonth() - 1, 1);
-          const end = new Date(ref.getFullYear(), ref.getMonth(), 1);
+        case 'lastmonth':
           return {
-            start,
-            end,
-            label: start.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) + ' (completo)'
+            start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+            end: new Date(now.getFullYear(), now.getMonth(), 1),
+            label: new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
           };
-        }
-
-        case '3months': {
-          const start = new Date(ref.getFullYear(), ref.getMonth() - 2, 1);
-          return { start, end: endExclusive, label: 'Ultimos 3 meses (a la fecha)' };
-        }
-
-        case '6months': {
-          const start = new Date(ref.getFullYear(), ref.getMonth() - 5, 1);
-          return { start, end: endExclusive, label: 'Ultimos 6 meses (a la fecha)' };
-        }
-
+        case '3months':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 2, 1),
+            end: new Date(today.getTime() + 86400000),
+            label: 'Ultimos 3 Meses'
+          };
+        case '6months':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 5, 1),
+            end: new Date(today.getTime() + 86400000),
+            label: 'Ultimos 6 Meses'
+          };
         default:
           return { start: null, end: null, label: 'Todo el Periodo' };
       }
     }
 
     function getCompareRange(period) {
-      const main = getDateRange(period);
-      if (!main.start) return { start: null, end: null, label: 'N/A' };
-
-      const durationDays = Math.round((main.end.getTime() - main.start.getTime()) / DAY_MS);
+      const now = maxDataDate || new Date();
 
       switch (period) {
-        case 'month': {
-          // Mes anterior, misma ventana (mismo numero de dias)
-          const prevStart = new Date(main.start.getFullYear(), main.start.getMonth() - 1, 1);
-          const prevEnd = addDays(prevStart, durationDays);
-          return { start: prevStart, end: prevEnd, label: 'Mes anterior (misma ventana)' };
-        }
-
-        case 'week': {
-          const prevStart = addDays(main.start, -7);
-          const prevEnd = addDays(prevStart, durationDays);
-          return { start: prevStart, end: prevEnd, label: 'Semana anterior (misma ventana)' };
-        }
-
-        case 'today': {
-          const prevStart = addDays(main.start, -1);
-          const prevEnd = addDays(prevStart, 1);
-          return { start: prevStart, end: prevEnd, label: 'Ayer' };
-        }
-
-        case 'lastmonth': {
-          // Mes anterior completo vs mes anterior a ese
-          const prevStart = new Date(main.start.getFullYear(), main.start.getMonth() - 1, 1);
-          const prevEnd = new Date(main.start.getFullYear(), main.start.getMonth(), 1);
+        case 'month':
           return {
-            start: prevStart,
-            end: prevEnd,
-            label: prevStart.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) + ' (completo)'
+            start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+            end: new Date(now.getFullYear(), now.getMonth(), 1),
+            label: new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
           };
-        }
-
+        case 'lastmonth':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 2, 1),
+            end: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+            label: new Date(now.getFullYear(), now.getMonth() - 2, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+          };
+        case '3months':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 5, 1),
+            end: new Date(now.getFullYear(), now.getMonth() - 2, 1),
+            label: '3 meses anteriores'
+          };
+        case '6months':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 11, 1),
+            end: new Date(now.getFullYear(), now.getMonth() - 5, 1),
+            label: '6 meses anteriores'
+          };
         default: {
-          // fallback: misma duracion, inmediatamente anterior
-          const prevEnd = main.start;
-          const prevStart = addDays(prevEnd, -durationDays);
-          return { start: prevStart, end: prevEnd, label: 'Periodo anterior (misma ventana)' };
+          const { start, end } = getDateRange(period);
+          if (!start) return { start: null, end: null, label: 'N/A' };
+          const duration = end.getTime() - start.getTime();
+          return { start: new Date(start.getTime() - duration), end: start, label: 'Periodo anterior' };
         }
       }
     }
@@ -860,8 +817,13 @@ function parseDate(s) {
 
       window[cb] = function(payload) {
         try {
-          if (!payload || payload.error) throw new Error(payload?.message || 'Error del servidor');
-          if (!payload.data?.length) throw new Error('Sin datos');
+          if (!payload || payload.error) throw new Error(payload && payload.message ? payload.message : 'Error del servidor');
+          if (!payload.data || !payload.data.length) throw new Error('Sin datos');
+
+          // Detectar estilo de fecha en base a muestra
+          const sampleFechas = payload.data.slice(0, 300).map(x => x.fecha);
+          DATE_STYLE = detectDateStyle(sampleFechas);
+          console.log('DATE_STYLE detectado:', DATE_STYLE);
 
           rawData = payload.data.map(r => ({
             fecha: parseDate(r.fecha),
@@ -872,16 +834,17 @@ function parseDate(s) {
             total: Number(r.total) || 0
           })).filter(r => r.fecha);
 
-          if (!rawData.length) {
-            throw new Error('Datos recibidos pero sin fechas validas. Revisar formato de fecha o BOM en CSV.');
-          }
+          if (!rawData.length) throw new Error('Todas las fechas quedaron invalidas. Revisar formato de Fecha en CSV.');
 
-          // Calcular fecha mas reciente
+          // min/max
+          const minDate = rawData.reduce((min, r) => r.fecha < min ? r.fecha : min, rawData[0].fecha);
           maxDataDate = rawData.reduce((max, r) => r.fecha > max ? r.fecha : max, rawData[0].fecha);
 
+          console.log('Min fecha:', minDate);
+          console.log('Max fecha:', maxDataDate);
+
           document.getElementById('lastUpdate').textContent =
-            'Datos hasta: ' + maxDataDate.toLocaleDateString('es-AR') +
-            ' | Cargado: ' + new Date().toLocaleTimeString('es-AR');
+            'Datos hasta: ' + maxDataDate.toLocaleDateString('es-AR') + ' | Cargado: ' + new Date().toLocaleTimeString('es-AR');
 
           populateChannels();
           setReady();
@@ -925,7 +888,7 @@ function parseDate(s) {
 
       const channelFiltered = filterByChannel(rawData, channel);
       filteredData = filterByRange(channelFiltered, mainRange);
-      compareData = filterByRange(channelFiltered, compRange);
+      compareData  = filterByRange(channelFiltered, compRange);
 
       updateDashboard();
     }
@@ -942,14 +905,14 @@ function parseDate(s) {
           importe += r.total;
           unidades += Math.abs(r.cantidad);
           docs.add(r.nroComprobante);
-        } else if (r.tipo === 'N/C') {
-          // si tu CSV ya trae total negativo, esto resta; si no, deberias forzarlo a negativo en origen
+        } else if (r.tipo === 'N/C' || r.tipo === 'NC') {
           importe += r.total;
         }
       });
 
       const numDocs = docs.size;
       const ticket = numDocs > 0 ? importe / numDocs : 0;
+
       return { importe, unidades, numDocs, ticket };
     }
 
@@ -964,7 +927,7 @@ function parseDate(s) {
           grouped[c].importe += r.total;
           grouped[c].facturas.add(r.nroComprobante);
           grouped[c].unidades += Math.abs(r.cantidad);
-        } else if (r.tipo === 'N/C') {
+        } else if (r.tipo === 'N/C' || r.tipo === 'NC') {
           grouped[c].nc.add(r.nroComprobante);
         }
       });
@@ -1048,46 +1011,36 @@ function parseDate(s) {
 
     function getGroupKey(date, group) {
       if (group === 'monthly') return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
-
       if (group === 'weekly') {
-        // Semana ISO: lunes
-        const mon = startOfISOWeek(date);
-        return mon.toISOString().split('T')[0];
+        const d = new Date(date);
+        d.setDate(d.getDate() - d.getDay());
+        return d.toISOString().split('T')[0];
       }
-
       return date.toISOString().split('T')[0];
     }
 
     function formatGroupLabel(key, group) {
       if (group === 'monthly') {
         const [y, m] = key.split('-');
-        return new Date(+y, +m - 1, 1).toLocaleDateString('es-AR', { month: 'short' });
+        return new Date(y, m - 1).toLocaleDateString('es-AR', { month: 'short' });
       }
-      // daily/weekly (key es YYYY-MM-DD)
-      return new Date(key + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
+      return new Date(key).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
     }
 
     function updateDonut() {
       const byChannel = calcByChannel(filteredData);
-
-      const positives = byChannel.filter(c => c.importe > 0);
-      const total = positives.reduce((acc, c) => acc + c.importe, 0);
+      const total = byChannel.reduce((acc, c) => acc + Math.max(0, c.importe), 0);
 
       document.getElementById('donutValue').textContent = formatCurrency(total);
 
       const svg = document.getElementById('donutSvg');
       svg.innerHTML = '<circle cx="80" cy="80" r="55" fill="none" stroke="#27272a" stroke-width="22"/>';
 
-      if (total <= 0) {
-        document.getElementById('donutLegend').innerHTML = '<div class="legend-item"><span class="legend-name">Sin ventas en el periodo</span><span class="legend-value">$0</span></div>';
-        return;
-      }
-
       let offset = 0;
       const circ = 2 * Math.PI * 55;
 
-      positives.slice(0, 8).forEach((ch, i) => {
-        const pct = ch.importe / total;
+      byChannel.filter(c => c.importe > 0).slice(0, 8).forEach((ch, i) => {
+        const pct = total > 0 ? (ch.importe / total) : 0;
         const dash = pct * circ;
 
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -1105,7 +1058,7 @@ function parseDate(s) {
       });
 
       const legend = document.getElementById('donutLegend');
-      legend.innerHTML = positives.slice(0, 6).map((ch, i) => {
+      legend.innerHTML = byChannel.filter(c => c.importe > 0).slice(0, 6).map((ch, i) => {
         const cfg = getChannelConfig(ch.canal);
         return `
           <div class="legend-item">
