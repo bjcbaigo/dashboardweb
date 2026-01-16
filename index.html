@@ -489,6 +489,14 @@
         </div>
       </div>
 
+<!-- KPIs -->      
+<div class="filters">
+  <label>Desde: <input type="date" id="desde"></label>
+  <label>Hasta: <input type="date" id="hasta"></label>
+  <button id="btnAplicar">Aplicar</button>
+</div>
+
+      
       <!-- KPIs -->
       <div class="kpi-grid">
         <div class="kpi-card">
@@ -590,8 +598,68 @@
     // =========================================================================
     // CONFIG
     // =========================================================================
-    const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbwFmzHGcX4-OPDYTpv-iiW68nui9MQAdsUVZzUpAAjJhQvmFwonODuvWoCd9r0x-60pWg/exec';
+    //const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbwFmzHGcX4-OPDYTpv-iiW68nui9MQAdsUVZzUpAAjJhQvmFwonODuvWoCd9r0x-60pWg/exec';
 
+const API_BASE = "https://script.google.com/macros/s/AKfycbx5UIvvg_LyTiTaS_IeY55yvSFOjB3wGVck41egNQQ9lXrvVHSAbfFyneeaf_QoaM3-Pw/exec";
+
+function qs(params) {
+  return Object.keys(params)
+    .filter(k => params[k] !== undefined && params[k] !== null && params[k] !== '')
+    .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+    .join('&');
+}
+
+function jsonp(url, callbackName) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => { cleanup(); reject(new Error('Timeout JSONP')); }, 30000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+    }
+
+    window[callbackName] = (payload) => { cleanup(); resolve(payload); };
+    script.onerror = () => { cleanup(); reject(new Error('Error cargando JSONP')); };
+
+    script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+    document.body.appendChild(script);
+  });
+}
+
+async function cargarVentasYRanking() {
+  const desde = document.getElementById('desde').value; // yyyy-mm-dd
+  const hasta = document.getElementById('hasta').value; // yyyy-mm-dd
+
+  if (desde && hasta && desde > hasta) {
+    alert('Rango invalido: Desde > Hasta');
+    return;
+  }
+
+  // 1) Ventas por rango
+  const urlVentas = API_BASE + '?' + qs({ api: 'ventas', desde, hasta });
+  const ventas = await jsonp(urlVentas, 'cbVentas_' + Date.now());
+  if (ventas.error) { alert(ventas.message || 'Error ventas'); return; }
+
+  // 2) Ranking dinamico para el mismo rango
+  const urlRank = API_BASE + '?' + qs({ api: 'ranking', desde, hasta });
+  const ranking = await jsonp(urlRank, 'cbRank_' + Date.now());
+  if (ranking.error) { alert(ranking.message || 'Error ranking'); return; }
+
+  // Conectar con tu render actual:
+  // renderVentas(ventas.data);
+  // renderRanking(ranking.data);
+
+  console.log('Ventas meta:', ventas.meta);
+  console.log('Ranking meta:', ranking.meta);
+}
+
+document.getElementById('btnAplicar').addEventListener('click', () => {
+  cargarVentasYRanking().catch(err => alert(err.message || String(err)));
+});
+
+    
     // =========================================================================
     // STATE
     // =========================================================================
