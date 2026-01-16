@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHEMES | Dashboard de Ventas</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a24;
+      --bg-card-hover: #22222e;
+      --accent-primary: #00d4aa;
+      --accent-secondary: #7c3aed;
+      --accent-tertiary: #3b82f6;
+      --accent-warning: #f59e0b;
+      --accent-danger: #ef4444;
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --border-color: #27272a;
+      --gradient-1: linear-gradient(135deg, #00d4aa 0%, #00a884 100%);
+      --gradient-2: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+      --gradient-3: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      --gradient-4: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    .bg-pattern {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%);
+    }
+
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+      background: rgba(10, 10, 15, 0.8);
+    }
+
+    .logo { display: flex; align-items: center; gap: 0.75rem; }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--gradient-1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .logo-text { font-size: 1.25rem; font-weight: 700; }
+    .logo-text span { color: var(--accent-primary); }
+
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+
+    .last-update {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .last-update span { color: var(--accent-primary); }
+
+    .btn-reload {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-reload:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .btn-reload.loading { pointer-events: none; opacity: 0.6; }
+    .btn-reload svg { width: 14px; height: 14px; }
+    .btn-reload.loading svg { animation: spin 1s linear infinite; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    main {
+      position: relative;
+      z-index: 10;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+    }
+
+    .loading-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 50vh;
+      gap: 1rem;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text { color: var(--text-secondary); font-size: 0.85rem; }
+
+    .error-msg {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 900px;
+    }
+
+    /* Controls */
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.0rem;
+      padding: 1rem;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      align-items: flex-end;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .control-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .control-select,
+    .control-input {
+      padding: 0.5rem 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.8rem;
+      min-width: 150px;
+    }
+
+    .control-select { cursor: pointer; }
+    .control-select:focus, .control-input:focus { outline: none; border-color: var(--accent-primary); }
+
+    .period-info {
+      margin-left: auto;
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .period-info .current { color: var(--accent-primary); font-weight: 600; }
+    .period-info .compare { color: var(--text-secondary); }
+
+    /* Date range row (calendar) */
+    .date-range-row {
+      display: none;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .btn-apply {
+      padding: 0.55rem 1rem;
+      background: var(--gradient-1);
+      border: 0;
+      border-radius: 10px;
+      color: #04110d;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .btn-apply:hover { filter: brightness(1.05); }
+
+    /* KPIs */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--kpi-gradient, var(--gradient-1));
+    }
+
+    .kpi-card.purple { --kpi-gradient: var(--gradient-2); }
+    .kpi-card.blue { --kpi-gradient: var(--gradient-3); }
+    .kpi-card.orange { --kpi-gradient: var(--gradient-4); }
+
+    .kpi-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+
+    .kpi-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+      margin-bottom: 0.5rem;
+    }
+
+    .kpi-compare {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.7rem;
+    }
+
+    .kpi-prev { color: var(--text-muted); }
+
+    .kpi-change {
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .kpi-change.up { background: rgba(0, 212, 170, 0.15); color: var(--accent-primary); }
+    .kpi-change.down { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+
+    /* Charts */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.25rem;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .chart-title { font-size: 0.9rem; font-weight: 600; }
+
+    .chart-select {
+      padding: 0.35rem 0.6rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.7rem;
+    }
+
+    .chart-container { height: 280px; position: relative; }
+
+    /* Donut */
+    .donut-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .donut-svg-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+    }
+
+    .donut-svg-container svg { transform: rotate(-90deg); }
+
+    .donut-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .donut-center-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .donut-center-label { font-size: 0.6rem; color: var(--text-muted); }
+
+    .donut-legend { width: 100%; }
+
+    .legend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.75rem;
+    }
+
+    .legend-item:last-child { border-bottom: none; }
+
+    .legend-left { display: flex; align-items: center; gap: 0.5rem; }
+
+    .legend-color { width: 10px; height: 10px; border-radius: 3px; }
+
+    .legend-name { color: var(--text-secondary); }
+
+    .legend-value { font-family: 'Space Mono', monospace; font-weight: 600; font-size: 0.7rem; }
+
+    /* Table cards */
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .table-title { font-size: 0.9rem; font-weight: 600; }
+
+    .data-table { width: 100%; border-collapse: collapse; }
+
+    .data-table th {
+      text-align: left;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      background: var(--bg-secondary);
+    }
+
+    .data-table td {
+      padding: 0.75rem 1.25rem;
+      font-size: 0.8rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: top;
+    }
+
+    .data-table tr:hover td { background: var(--bg-card-hover); }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    .channel-cell { display: flex; align-items: center; gap: 0.75rem; }
+
+    .channel-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.6rem;
+      color: #000;
+    }
+
+    .amount { font-family: 'Space Mono', monospace; font-weight: 600; }
+    .amount.positive { color: var(--accent-primary); }
+    .amount.negative { color: var(--accent-danger); }
+
+    .change-badge {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .change-badge.up { background: rgba(0, 212, 170, 0.15); color: var(--accent-primary); }
+    .change-badge.down { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+
+    .muted { color: var(--text-muted); }
+
+    /* Channel colors */
+    .bg-ml { background: var(--gradient-1); }
+    .bg-web { background: var(--gradient-2); }
+    .bg-bna { background: var(--gradient-3); }
+    .bg-icbc { background: var(--gradient-4); }
+    .bg-clic { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
+    .bg-comafi { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+    .bg-macro { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+    .bg-other { background: linear-gradient(135deg, #71717a 0%, #52525b 100%); }
+
+    @media (max-width: 1200px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      header { flex-direction: column; gap: 1rem; padding: 1rem; }
+      main { padding: 1rem; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .controls-bar { flex-direction: column; align-items: stretch; }
+      .period-info { margin-left: 0; text-align: left; margin-top: 0.5rem; }
+      .date-range-row { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-pattern"></div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">CH</div>
+      <div class="logo-text">CHEMES <span>Ventas</span></div>
+    </div>
+    <div class="header-right">
+      <div class="last-update">Actualizado: <span id="lastUpdate">--</span></div>
+      <button class="btn-reload" id="btnReload">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Recargar
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Cargando datos...</div>
+    </div>
+
+    <div id="errorScreen" class="loading-screen" style="display:none;">
+      <div class="error-msg" id="errorMsg">Error</div>
+      <button class="btn-reload" id="btnRetry" style="margin-top:1rem;">Reintentar</button>
+    </div>
+
+    <div id="dashboard" style="display:none;">
+
+      <!-- Controls -->
+      <div class="controls-bar">
+        <div class="control-group">
+          <label class="control-label">Periodo</label>
+          <select class="control-select" id="periodSelect">
+            <option value="today">Hoy</option>
+            <option value="week">Esta Semana</option>
+            <option value="month" selected>Mes Actual</option>
+            <option value="lastmonth">Mes Anterior</option>
+            <option value="3months">Ultimos 3 Meses</option>
+            <option value="6months">Ultimos 6 Meses</option>
+            <option value="all">Todo</option>
+            <option value="custom">Rango (calendario)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Canal</label>
+          <select class="control-select" id="channelSelect">
+            <option value="all">Todos los Canales</option>
+          </select>
+        </div>
+        <div class="period-info">
+          <div class="current" id="periodLabel">--</div>
+          <div class="compare">vs <span id="compareLabel">--</span></div>
+        </div>
+      </div>
+
+      <!-- Calendar (solo para custom) -->
+      <div class="date-range-row" id="dateRangeRow">
+        <div class="control-group">
+          <label class="control-label">Desde</label>
+          <input class="control-input" type="date" id="desde">
+        </div>
+        <div class="control-group">
+          <label class="control-label">Hasta</label>
+          <input class="control-input" type="date" id="hasta">
+        </div>
+        <button class="btn-apply" id="btnAplicar">Aplicar</button>
+        <div class="muted" style="font-size:0.75rem; margin-left:auto;">
+          Nota: el rango es dia calendario (incluye Desde y Hasta).
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Ventas Netas</div>
+          <div class="kpi-value" id="kpiSales">$0</div>
+          <div class="kpi-compare">
+            <span class="kpi-prev">Anterior: <span id="kpiSalesPrev">$0</span></span>
+            <span class="kpi-change" id="kpiSalesChange">0%</span>
+          </div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">Unidades</div>
+          <div class="kpi-value" id="kpiUnits">0</div>
+          <div class="kpi-compare">
+            <span class="kpi-prev">Anterior: <span id="kpiUnitsPrev">0</span></span>
+            <span class="kpi-change" id="kpiUnitsChange">0%</span>
+          </div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Comprobantes</div>
+          <div class="kpi-value" id="kpiDocs">0</div>
+          <div class="kpi-compare">
+            <span class="kpi-prev">Anterior: <span id="kpiDocsPrev">0</span></span>
+            <span class="kpi-change" id="kpiDocsChange">0%</span>
+          </div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-label">Ticket Promedio</div>
+          <div class="kpi-value" id="kpiTicket">$0</div>
+          <div class="kpi-compare">
+            <span class="kpi-prev">Anterior: <span id="kpiTicketPrev">$0</span></span>
+            <span class="kpi-change" id="kpiTicketChange">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3 class="chart-title">Evolucion de Ventas</h3>
+            <select class="chart-select" id="groupSelect">
+              <option value="daily">Diario</option>
+              <option value="weekly">Semanal</option>
+              <option value="monthly">Mensual</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <canvas id="evolutionChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3 class="chart-title">Por Canal</h3>
+          </div>
+          <div class="donut-wrapper">
+            <div class="donut-svg-container">
+              <svg width="160" height="160" viewBox="0 0 160 160" id="donutSvg"></svg>
+              <div class="donut-center">
+                <div class="donut-center-value" id="donutValue">$0</div>
+                <div class="donut-center-label">total</div>
+              </div>
+            </div>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ranking -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3 class="table-title">Top Articulos (SKU)</h3>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+            <select class="chart-select" id="rankSort">
+              <option value="importe">Mayor Importe</option>
+              <option value="unidades">Mayor Unidades</option>
+            </select>
+            <select class="chart-select" id="rankTopN">
+              <option value="10" selected>Top 10</option>
+              <option value="25">Top 25</option>
+              <option value="50">Top 50</option>
+            </select>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Descripcion</th>
+              <th>Unidades</th>
+              <th>Importe</th>
+            </tr>
+          </thead>
+          <tbody id="rankBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3 class="table-title">Detalle por Canal de Venta</h3>
+          <select class="chart-select" id="tableSort">
+            <option value="importe">Mayor Importe</option>
+            <option value="unidades">Mayor Unidades</option>
+            <option value="cambio">Mayor Crecimiento</option>
+          </select>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Canal</th>
+              <th>Importe</th>
+              <th>Facturas</th>
+              <th>N/C</th>
+              <th>Anterior</th>
+              <th>Variacion</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // =========================================================================
+    // CONFIG
+    // =========================================================================
+    const API_BASE = "https://script.google.com/macros/s/AKfycbx5UIvvg_LyTiTaS_IeY55yvSFOjB3wGVck41egNQQ9lXrvVHSAbfFyneeaf_QoaM3-Pw/exec";
+    // Compatibilidad con versiones viejas (por si quedó alguna referencia)
+    const DATA_API_URL = API_BASE;
+
+    // =========================================================================
+    // JSONP helpers
+    // =========================================================================
+    function qs(params) {
+      return Object.keys(params)
+        .filter(k => params[k] !== undefined && params[k] !== null && params[k] !== '')
+        .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+        .join('&');
+    }
+
+    function jsonp(url, callbackName) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        const timeout = setTimeout(() => { cleanup(); reject(new Error('Timeout JSONP')); }, 30000);
+
+        function cleanup() {
+          clearTimeout(timeout);
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+        }
+
+        window[callbackName] = (payload) => { cleanup(); resolve(payload); };
+        script.onerror = () => { cleanup(); reject(new Error('Error cargando JSONP')); };
+
+        script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+        document.body.appendChild(script);
+      });
+    }
+
+    // =========================================================================
+    // STATE
+    // =========================================================================
+    let rawData = [];
+    let filteredData = [];
+    let compareData = [];
+    let evolutionChart = null;
+    let maxDataDate = null; // Fecha mas reciente de los datos
+    let customStart = null; // Date
+    let customEnd = null;   // Date inclusive
+
+    // Detecta formato predominante de fechas
+    let DATE_STYLE = null; // 'MDY' o 'DMY'
+
+    const COLORS = ['#00d4aa', '#7c3aed', '#3b82f6', '#f59e0b', '#ef4444', '#14b8a6', '#f97316', '#6366f1'];
+
+    const CHANNEL_CONFIG = {
+      'MERCADO LIBRE': { name: 'MercadoLibre', bg: 'bg-ml', abbr: 'ME' },
+      'VENTAS WEB': { name: 'E-commerce Web', bg: 'bg-web', abbr: 'VE' },
+      'SHOP BNA': { name: 'Tienda BNA', bg: 'bg-bna', abbr: 'SH' },
+      'SHOP BNA PROMO': { name: 'BNA Promo', bg: 'bg-bna', abbr: 'BP' },
+      'ICBC MALL': { name: 'ICBC Mall', bg: 'bg-icbc', abbr: 'IC' },
+      'TIENDA CLIC': { name: 'Tienda Clic', bg: 'bg-clic', abbr: 'TI' },
+      'COMAFI': { name: 'Comafi', bg: 'bg-comafi', abbr: 'CO' },
+      'TIENDRA MACRO': { name: 'Tienda Macro', bg: 'bg-macro', abbr: 'TM' }
+    };
+
+    // =========================================================================
+    // UTILS
+    // =========================================================================
+    function formatCurrency(v) {
+      const abs = Math.abs(v);
+      if (abs >= 1e6) return (v < 0 ? '-' : '') + '$' + (abs / 1e6).toFixed(2) + 'M';
+      if (abs >= 1e3) return (v < 0 ? '-' : '') + '$' + (abs / 1e3).toFixed(1) + 'K';
+      return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(v);
+    }
+
+    function formatNumber(v) {
+      return new Intl.NumberFormat('es-AR').format(Math.round(v));
+    }
+
+    function detectDateStyle(samples) {
+      let mdy = 0, dmy = 0;
+
+      for (const s0 of samples) {
+        if (!s0) continue;
+        const s = String(s0).trim();
+        const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (!m) continue;
+
+        const a = parseInt(m[1], 10);
+        const b = parseInt(m[2], 10);
+
+        if (a > 12 && b <= 12) dmy++;
+        else if (b > 12 && a <= 12) mdy++;
+      }
+
+      if (mdy === 0 && dmy === 0) return 'DMY'; // default AR
+      return (mdy >= dmy) ? 'MDY' : 'DMY';
+    }
+
+    function parseDate(s) {
+      if (!s) return null;
+      if (s instanceof Date) return s;
+
+      s = String(s).trim();
+
+      // ISO: YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        const d = new Date(s.substring(0, 10) + 'T00:00:00');
+        return isNaN(d) ? null : d;
+      }
+
+      // Slash: ??/??/YYYY (con o sin hora / AMPM)
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (m) {
+        const p1 = parseInt(m[1], 10);
+        const p2 = parseInt(m[2], 10);
+        const y  = parseInt(m[3], 10);
+
+        const style = DATE_STYLE || ((p1 > 12 && p2 <= 12) ? 'DMY' : (p2 > 12 && p1 <= 12) ? 'MDY' : 'DMY');
+
+        const month = (style === 'MDY') ? (p1 - 1) : (p2 - 1);
+        const day   = (style === 'MDY') ? p2 : p1;
+
+        const d = new Date(y, month, day);
+        return isNaN(d) ? null : d;
+      }
+
+      return null;
+    }
+
+    function getChannelConfig(c) {
+      return CHANNEL_CONFIG[c] || { name: c, bg: 'bg-other', abbr: (c || 'OT').substring(0, 2).toUpperCase() };
+    }
+
+    function calcChange(curr, prev) {
+      if (!prev || prev === 0) return curr > 0 ? 100 : 0;
+      return ((curr - prev) / Math.abs(prev)) * 100;
+    }
+
+    // =========================================================================
+    // DATE RANGES - Usa la fecha mas reciente de los datos como referencia
+    // =========================================================================
+    function getDateRange(period) {
+      const now = maxDataDate || new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      switch (period) {
+        case 'today':
+          return { start: today, end: new Date(today.getTime() + 86400000), label: 'Ultimo dia (' + today.toLocaleDateString('es-AR') + ')' };
+        case 'week': {
+          const dow = today.getDay();
+          const mon = new Date(today);
+          mon.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+          return { start: mon, end: new Date(today.getTime() + 86400000), label: 'Semana del ' + mon.toLocaleDateString('es-AR') };
+        }
+        case 'month':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth(), 1),
+            end: new Date(today.getTime() + 86400000),
+            label: now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+          };
+        case 'lastmonth':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+            end: new Date(now.getFullYear(), now.getMonth(), 1),
+            label: new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+          };
+        case '3months':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 2, 1),
+            end: new Date(today.getTime() + 86400000),
+            label: 'Ultimos 3 Meses'
+          };
+        case '6months':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 5, 1),
+            end: new Date(today.getTime() + 86400000),
+            label: 'Ultimos 6 Meses'
+          };
+        case 'custom': {
+          if (!customStart || !customEnd) return { start: null, end: null, label: 'Rango (sin definir)' };
+          const start = new Date(customStart.getFullYear(), customStart.getMonth(), customStart.getDate());
+          const endInc = new Date(customEnd.getFullYear(), customEnd.getMonth(), customEnd.getDate());
+          const endExcl = new Date(endInc.getTime() + 86400000);
+          return { start, end: endExcl, label: 'Rango: ' + start.toLocaleDateString('es-AR') + ' a ' + endInc.toLocaleDateString('es-AR') };
+        }
+        default:
+          return { start: null, end: null, label: 'Todo el Periodo' };
+      }
+    }
+
+    function getCompareRange(period) {
+      const now = maxDataDate || new Date();
+
+      switch (period) {
+        case 'month':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+            end: new Date(now.getFullYear(), now.getMonth(), 1),
+            label: new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+          };
+        case 'lastmonth':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 2, 1),
+            end: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+            label: new Date(now.getFullYear(), now.getMonth() - 2, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+          };
+        case '3months':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 5, 1),
+            end: new Date(now.getFullYear(), now.getMonth() - 2, 1),
+            label: '3 meses anteriores'
+          };
+        case '6months':
+          return {
+            start: new Date(now.getFullYear(), now.getMonth() - 11, 1),
+            end: new Date(now.getFullYear(), now.getMonth() - 5, 1),
+            label: '6 meses anteriores'
+          };
+        case 'custom': {
+          if (!customStart || !customEnd) return { start: null, end: null, label: 'N/A' };
+          const start = new Date(customStart.getFullYear(), customStart.getMonth(), customStart.getDate());
+          const endInc = new Date(customEnd.getFullYear(), customEnd.getMonth(), customEnd.getDate());
+          const endExcl = new Date(endInc.getTime() + 86400000);
+          const duration = endExcl.getTime() - start.getTime();
+          const prevEnd = start;
+          const prevStart = new Date(start.getTime() - duration);
+          return { start: prevStart, end: prevEnd, label: 'Periodo anterior' };
+        }
+        default: {
+          const { start, end } = getDateRange(period);
+          if (!start) return { start: null, end: null, label: 'N/A' };
+          const duration = end.getTime() - start.getTime();
+          return { start: new Date(start.getTime() - duration), end: start, label: 'Periodo anterior' };
+        }
+      }
+    }
+
+    function filterByRange(data, range) {
+      if (!range.start) return data;
+      return data.filter(r => r.fecha >= range.start && r.fecha < range.end);
+    }
+
+    function filterByChannel(data, channel) {
+      if (channel === 'all') return data;
+      return data.filter(r => r.canal === channel);
+    }
+
+    // =========================================================================
+    // UI
+    // =========================================================================
+    function setLoading() {
+      document.getElementById('loadingScreen').style.display = 'flex';
+      document.getElementById('errorScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'none';
+    }
+
+    function setError(msg) {
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'flex';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('errorMsg').textContent = msg;
+    }
+
+    function setReady() {
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+    }
+
+    function updateCalendarVisibility() {
+      const period = document.getElementById('periodSelect').value;
+      document.getElementById('dateRangeRow').style.display = (period === 'custom') ? 'flex' : 'none';
+    }
+
+    // =========================================================================
+    // DATA LOADING (Ventas)
+    // =========================================================================
+    async function loadData(opts) {
+      const btn = document.getElementById('btnReload');
+      btn.classList.add('loading');
+      setLoading();
+
+      try {
+        const desde = opts && opts.desde ? opts.desde : '';
+      const hasta = opts && opts.hasta ? opts.hasta : '';
+
+        const urlVentas = API_BASE + '?' + qs({ api: 'ventas', desde, hasta });
+        const payload = await jsonp(urlVentas, '__cbVentas_' + Date.now());
+
+        if (!payload || payload.error) throw new Error(payload && payload.message ? payload.message : 'Error del servidor');
+        if (!payload.data || !payload.data.length) throw new Error('Sin datos');
+
+        // Detectar estilo de fecha en base a muestra
+        const sampleFechas = payload.data.slice(0, 300).map(x => x.fecha);
+        DATE_STYLE = detectDateStyle(sampleFechas);
+
+        rawData = payload.data.map(r => ({
+          fecha: parseDate(r.fecha),
+          tipo: String(r.tipo || '').toUpperCase().trim(),
+          nroComprobante: String(r.nroComprobante || ''),
+          canal: String(r.canal || '').toUpperCase().trim(),
+          sku: String(r.sku || ''),
+          descripcion: String(r.descripcion || ''),
+          cantidad: Number(r.cantidad) || 0,
+          total: Number(r.total) || 0
+        })).filter(r => r.fecha);
+
+        if (!rawData.length) throw new Error('Todas las fechas quedaron invalidas. Revisar formato de Fecha en CSV.');
+
+        maxDataDate = rawData.reduce((max, r) => r.fecha > max ? r.fecha : max, rawData[0].fecha);
+
+        document.getElementById('lastUpdate').textContent =
+          'Datos hasta: ' + maxDataDate.toLocaleDateString('es-AR') + ' | Cargado: ' + new Date().toLocaleTimeString('es-AR');
+
+        populateChannels();
+        setReady();
+        updateCalendarVisibility();
+        applyFilters();
+      } catch (err) {
+        setError(err.message || String(err));
+      } finally {
+        btn.classList.remove('loading');
+      }
+    }
+
+    function populateChannels() {
+      const channels = [...new Set(rawData.map(r => r.canal))].sort();
+      const sel = document.getElementById('channelSelect');
+      sel.innerHTML = '<option value="all">Todos los Canales</option>';
+      channels.forEach(c => {
+        const cfg = getChannelConfig(c);
+        sel.innerHTML += `<option value="${c}">${cfg.name}</option>`;
+      });
+    }
+
+    // =========================================================================
+    // FILTERS
+    // =========================================================================
+    function applyFilters() {
+      const period = document.getElementById('periodSelect').value;
+      const channel = document.getElementById('channelSelect').value;
+
+      const mainRange = getDateRange(period);
+      const compRange = getCompareRange(period);
+
+      document.getElementById('periodLabel').textContent = mainRange.label;
+      document.getElementById('compareLabel').textContent = compRange.label;
+
+      const channelFiltered = filterByChannel(rawData, channel);
+      filteredData = filterByRange(channelFiltered, mainRange);
+      compareData  = filterByRange(channelFiltered, compRange);
+
+      updateDashboard();
+    }
+
+    // =========================================================================
+    // CALCULATIONS
+    // =========================================================================
+    function calcMetrics(data) {
+      let importe = 0, unidades = 0;
+      const docs = new Set();
+
+      data.forEach(r => {
+        if (r.tipo === 'FAC') {
+          importe += r.total;
+          unidades += Math.abs(r.cantidad);
+          docs.add(r.nroComprobante);
+        } else if (r.tipo === 'N/C' || r.tipo === 'NC') {
+          importe += r.total;
+        }
+      });
+
+      const numDocs = docs.size;
+      const ticket = numDocs > 0 ? importe / numDocs : 0;
+
+      return { importe, unidades, numDocs, ticket };
+    }
+
+    function calcByChannel(data) {
+      const grouped = {};
+
+      data.forEach(r => {
+        const c = r.canal;
+        if (!grouped[c]) grouped[c] = { importe: 0, facturas: new Set(), nc: new Set(), unidades: 0 };
+
+        if (r.tipo === 'FAC') {
+          grouped[c].importe += r.total;
+          grouped[c].facturas.add(r.nroComprobante);
+          grouped[c].unidades += Math.abs(r.cantidad);
+        } else if (r.tipo === 'N/C' || r.tipo === 'NC') {
+          grouped[c].nc.add(r.nroComprobante);
+        }
+      });
+
+      return Object.entries(grouped).map(([canal, d]) => ({
+        canal,
+        importe: d.importe,
+        facturas: d.facturas.size,
+        nc: d.nc.size,
+        unidades: d.unidades
+      })).sort((a, b) => b.importe - a.importe);
+    }
+
+    function calcTopArticulos(data) {
+      const bySku = {};
+      data.forEach(r => {
+        if (r.tipo !== 'FAC') return;
+        const sku = (r.sku || '').trim();
+        if (!sku) return;
+        if (!bySku[sku]) bySku[sku] = { sku, descripcion: (r.descripcion || '').trim(), unidades: 0, importe: 0 };
+        if (!bySku[sku].descripcion && r.descripcion) bySku[sku].descripcion = String(r.descripcion).trim();
+        bySku[sku].unidades += Math.abs(r.cantidad);
+        bySku[sku].importe += r.total;
+      });
+      return Object.values(bySku);
+    }
+
+    // =========================================================================
+    // UPDATE UI
+    // =========================================================================
+    function updateDashboard() {
+      updateKPIs();
+      updateChart();
+      updateDonut();
+      updateRanking();
+      updateTable();
+    }
+
+    function updateKPIs() {
+      const curr = calcMetrics(filteredData);
+      const prev = calcMetrics(compareData);
+
+      setKPI('kpiSales', 'kpiSalesPrev', 'kpiSalesChange', curr.importe, prev.importe, true);
+      setKPI('kpiUnits', 'kpiUnitsPrev', 'kpiUnitsChange', curr.unidades, prev.unidades, false);
+      setKPI('kpiDocs', 'kpiDocsPrev', 'kpiDocsChange', curr.numDocs, prev.numDocs, false);
+      setKPI('kpiTicket', 'kpiTicketPrev', 'kpiTicketChange', curr.ticket, prev.ticket, true);
+    }
+
+    function setKPI(valId, prevId, changeId, curr, prev, isCurrency) {
+      document.getElementById(valId).textContent = isCurrency ? formatCurrency(curr) : formatNumber(curr);
+      document.getElementById(prevId).textContent = isCurrency ? formatCurrency(prev) : formatNumber(prev);
+
+      const pct = calcChange(curr, prev);
+      const el = document.getElementById(changeId);
+      el.textContent = (pct >= 0 ? '+' : '') + Math.round(pct) + '%';
+      el.className = 'kpi-change ' + (pct >= 0 ? 'up' : 'down');
+    }
+
+    function updateChart() {
+      const group = document.getElementById('groupSelect').value;
+      const grouped = {};
+
+      filteredData.forEach(r => {
+        if (r.tipo !== 'FAC') return;
+        const key = getGroupKey(r.fecha, group);
+        grouped[key] = (grouped[key] || 0) + r.total;
+      });
+
+      const labels = Object.keys(grouped).sort();
+      const values = labels.map(k => grouped[k]);
+
+      const ctx = document.getElementById('evolutionChart').getContext('2d');
+      if (evolutionChart) evolutionChart.destroy();
+
+      evolutionChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels.map(l => formatGroupLabel(l, group)),
+          datasets: [{
+            data: values,
+            backgroundColor: 'rgba(0, 212, 170, 0.8)',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', maxRotation: 45 } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', callback: v => formatCurrency(v) } }
+          }
+        }
+      });
+    }
+
+    function getGroupKey(date, group) {
+      if (group === 'monthly') return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+      if (group === 'weekly') {
+        const d = new Date(date);
+        d.setDate(d.getDate() - d.getDay());
+        return d.toISOString().split('T')[0];
+      }
+      return date.toISOString().split('T')[0];
+    }
+
+    function formatGroupLabel(key, group) {
+      if (group === 'monthly') {
+        const [y, m] = key.split('-');
+        return new Date(y, m - 1).toLocaleDateString('es-AR', { month: 'short' });
+      }
+      return new Date(key).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
+    }
+
+    function updateDonut() {
+      const byChannel = calcByChannel(filteredData);
+      const total = byChannel.reduce((acc, c) => acc + Math.max(0, c.importe), 0);
+
+      document.getElementById('donutValue').textContent = formatCurrency(total);
+
+      const svg = document.getElementById('donutSvg');
+      svg.innerHTML = '<circle cx="80" cy="80" r="55" fill="none" stroke="#27272a" stroke-width="22"/>';
+
+      let offset = 0;
+      const circ = 2 * Math.PI * 55;
+
+      byChannel.filter(c => c.importe > 0).slice(0, 8).forEach((ch, i) => {
+        const pct = total > 0 ? (ch.importe / total) : 0;
+        const dash = pct * circ;
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '80');
+        circle.setAttribute('cy', '80');
+        circle.setAttribute('r', '55');
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', COLORS[i % COLORS.length]);
+        circle.setAttribute('stroke-width', '22');
+        circle.setAttribute('stroke-dasharray', `${dash} ${circ}`);
+        circle.setAttribute('stroke-dashoffset', -offset);
+        svg.appendChild(circle);
+
+        offset += dash;
+      });
+
+      const legend = document.getElementById('donutLegend');
+      legend.innerHTML = byChannel.filter(c => c.importe > 0).slice(0, 6).map((ch, i) => {
+        const cfg = getChannelConfig(ch.canal);
+        return `
+          <div class="legend-item">
+            <div class="legend-left">
+              <div class="legend-color" style="background:${COLORS[i % COLORS.length]}"></div>
+              <span class="legend-name">${cfg.name}</span>
+            </div>
+            <span class="legend-value">${formatCurrency(ch.importe)}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateRanking() {
+      const sort = document.getElementById('rankSort').value;
+      const topN = parseInt(document.getElementById('rankTopN').value, 10) || 10;
+
+      const rows = calcTopArticulos(filteredData);
+
+      if (sort === 'unidades') rows.sort((a, b) => b.unidades - a.unidades);
+      else rows.sort((a, b) => b.importe - a.importe);
+
+      const tbody = document.getElementById('rankBody');
+      const top = rows.slice(0, topN);
+
+      if (!top.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="muted">Sin datos para el rango/canal seleccionado.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = top.map(r => `
+        <tr>
+          <td><span class="amount">${r.sku}</span></td>
+          <td>${(r.descripcion || '').substring(0, 80)}</td>
+          <td>${formatNumber(r.unidades)}</td>
+          <td><span class="amount positive">${formatCurrency(r.importe)}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function updateTable() {
+      const currByChannel = calcByChannel(filteredData);
+      const prevByChannel = calcByChannel(compareData);
+      const prevMap = Object.fromEntries(prevByChannel.map(c => [c.canal, c]));
+
+      const sort = document.getElementById('tableSort').value;
+
+      const withChange = currByChannel.map(c => {
+        const prev = prevMap[c.canal] || { importe: 0 };
+        return { ...c, prevImporte: prev.importe, change: calcChange(c.importe, prev.importe) };
+      });
+
+      if (sort === 'unidades') withChange.sort((a, b) => b.unidades - a.unidades);
+      else if (sort === 'cambio') withChange.sort((a, b) => b.change - a.change);
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = withChange.map(c => {
+        const cfg = getChannelConfig(c.canal);
+        const changeClass = c.change >= 0 ? 'up' : 'down';
+        const changeText = (c.change >= 0 ? '+' : '') + Math.round(c.change) + '%';
+
+        return `
+          <tr>
+            <td>
+              <div class="channel-cell">
+                <div class="channel-avatar ${cfg.bg}">${cfg.abbr}</div>
+                <span>${cfg.name}</span>
+              </div>
+            </td>
+            <td><span class="amount positive">${formatCurrency(c.importe)}</span></td>
+            <td>${formatNumber(c.facturas)}</td>
+            <td>${formatNumber(c.nc)}</td>
+            <td><span class="amount">${formatCurrency(c.prevImporte)}</span></td>
+            <td><span class="change-badge ${changeClass}">${changeText}</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // EVENTS
+    // =========================================================================
+    document.getElementById('btnReload').addEventListener('click', () => loadData());
+    document.getElementById('btnRetry').addEventListener('click', () => loadData());
+
+    document.getElementById('periodSelect').addEventListener('change', () => {
+      updateCalendarVisibility();
+      applyFilters();
+    });
+
+    document.getElementById('channelSelect').addEventListener('change', applyFilters);
+    document.getElementById('groupSelect').addEventListener('change', updateChart);
+    document.getElementById('tableSort').addEventListener('change', updateTable);
+    document.getElementById('rankSort').addEventListener('change', updateRanking);
+    document.getElementById('rankTopN').addEventListener('change', updateRanking);
+
+    document.getElementById('btnAplicar').addEventListener('click', async () => {
+      const desde = document.getElementById('desde').value; // yyyy-mm-dd
+      const hasta = document.getElementById('hasta').value; // yyyy-mm-dd
+
+      if (!desde || !hasta) { alert('Completar Desde y Hasta'); return; }
+      if (desde > hasta) { alert('Rango invalido: Desde > Hasta'); return; }
+
+      customStart = new Date(desde + 'T00:00:00');
+      customEnd   = new Date(hasta + 'T00:00:00');
+
+      // Recargar ventas ya filtradas por rango (API) y forzar modo custom
+      await loadData({ desde, hasta });
+      document.getElementById('periodSelect').value = 'custom';
+      updateCalendarVisibility();
+      applyFilters();
+    });
+
+    // =========================================================================
+    // INIT
+    // =========================================================================
+    window.addEventListener('load', () => {
+      updateCalendarVisibility();
+      loadData();
+    });
+  </script>
+</body>
+</html>
