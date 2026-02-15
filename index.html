@@ -6,6 +6,7 @@
   <title>CHEMES | Dashboard de Ventas</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --bg-primary: #0a0a0f;
@@ -452,6 +453,73 @@
     .bg-macro { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
     .bg-other { background: linear-gradient(135deg, #71717a 0%, #52525b 100%); }
 
+    /* Ranking pagination & download */
+    .rank-pagination {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .rank-pagination .page-info {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      padding: 0 0.5rem;
+      font-family: 'Space Mono', monospace;
+      white-space: nowrap;
+    }
+
+    .rank-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .rank-btn:hover:not(:disabled) {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    .rank-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .btn-download-xlsx {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.35rem 0.6rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.7rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-download-xlsx:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    .btn-download-xlsx svg {
+      width: 13px;
+      height: 13px;
+    }
+
     @media (max-width: 1200px) {
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
       .charts-grid { grid-template-columns: 1fr; }
@@ -621,16 +689,23 @@
               <option value="importe">Mayor Importe</option>
               <option value="unidades">Mayor Unidades</option>
             </select>
-            <select class="chart-select" id="rankTopN">
-              <option value="10" selected>Top 10</option>
-              <option value="25">Top 25</option>
-              <option value="50">Top 50</option>
-            </select>
+            <div class="rank-pagination">
+              <button class="rank-btn" id="rankPrev" title="Seccion anterior" disabled>&laquo;</button>
+              <span class="page-info" id="rankPageInfo">1 / 1</span>
+              <button class="rank-btn" id="rankNext" title="Seccion siguiente">&raquo;</button>
+            </div>
+            <button class="btn-download-xlsx" id="btnRankXlsx" title="Descargar ranking completo en Excel">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Excel
+            </button>
           </div>
         </div>
         <table class="data-table">
           <thead>
             <tr>
+              <th>#</th>
               <th>SKU</th>
               <th>Descripcion</th>
               <th>Unidades</th>
@@ -716,6 +791,8 @@
     let maxDataDate = null; // Fecha mas reciente de los datos
     let customStart = null; // Date
     let customEnd = null;   // Date inclusive
+    let rankPage = 0;        // current ranking section index (0-based)
+    let rankAllRows = [];    // cached sorted ranking rows
 
     // Detecta formato predominante de fechas
     let DATE_STYLE = null; // 'MDY' o 'DMY'
@@ -1010,6 +1087,7 @@
     function applyFilters() {
       const period = document.getElementById('periodSelect').value;
       const channel = document.getElementById('channelSelect').value;
+      rankPage = 0;
 
       const mainRange = getDateRange(period);
       const compRange = getCompareRange(period);
@@ -1220,29 +1298,76 @@
 
     function updateRanking() {
       const sort = document.getElementById('rankSort').value;
-      const topN = parseInt(document.getElementById('rankTopN').value, 10) || 10;
+      const PAGE_SIZE = 100;
 
-      const rows = calcTopArticulos(filteredData);
+      rankAllRows = calcTopArticulos(filteredData);
+      if (sort === 'unidades') rankAllRows.sort((a, b) => b.unidades - a.unidades);
+      else rankAllRows.sort((a, b) => b.importe - a.importe);
 
-      if (sort === 'unidades') rows.sort((a, b) => b.unidades - a.unidades);
-      else rows.sort((a, b) => b.importe - a.importe);
+      const totalPages = Math.max(1, Math.ceil(rankAllRows.length / PAGE_SIZE));
+      if (rankPage >= totalPages) rankPage = totalPages - 1;
+      if (rankPage < 0) rankPage = 0;
+
+      document.getElementById('rankPageInfo').textContent = (rankPage + 1) + ' / ' + totalPages;
+      document.getElementById('rankPrev').disabled = (rankPage === 0);
+      document.getElementById('rankNext').disabled = (rankPage >= totalPages - 1);
+
+      const startIdx = rankPage * PAGE_SIZE;
+      const section = rankAllRows.slice(startIdx, startIdx + PAGE_SIZE);
 
       const tbody = document.getElementById('rankBody');
-      const top = rows.slice(0, topN);
-
-      if (!top.length) {
-        tbody.innerHTML = `<tr><td colspan="4" class="muted">Sin datos para el rango/canal seleccionado.</td></tr>`;
+      if (!section.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="muted">Sin datos para el rango/canal seleccionado.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = top.map(r => `
+      tbody.innerHTML = section.map((r, i) => `
         <tr>
+          <td><span class="muted">${startIdx + i + 1}</span></td>
           <td><span class="amount">${r.sku}</span></td>
           <td>${(r.descripcion || '').substring(0, 80)}</td>
           <td>${formatNumber(r.unidades)}</td>
           <td><span class="amount positive">${formatCurrency(r.importe)}</span></td>
         </tr>
       `).join('');
+    }
+
+    function downloadRankingXlsx() {
+      if (typeof XLSX === 'undefined') {
+        alert('Error: libreria de Excel no disponible.');
+        return;
+      }
+      if (!rankAllRows.length) {
+        alert('No hay datos para exportar.');
+        return;
+      }
+
+      const header = ['#', 'SKU', 'Descripcion', 'Unidades', 'Importe'];
+      const wsData = [header];
+      rankAllRows.forEach((r, i) => {
+        wsData.push([
+          i + 1,
+          r.sku,
+          (r.descripcion || '').substring(0, 200),
+          r.unidades,
+          r.importe
+        ]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = [
+        { wch: 6 },
+        { wch: 18 },
+        { wch: 50 },
+        { wch: 12 },
+        { wch: 16 }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Ranking Articulos');
+
+      const today = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(wb, 'ranking_articulos_' + today + '.xlsx');
     }
 
     function updateTable() {
@@ -1298,8 +1423,18 @@
     document.getElementById('channelSelect').addEventListener('change', applyFilters);
     document.getElementById('groupSelect').addEventListener('change', updateChart);
     document.getElementById('tableSort').addEventListener('change', updateTable);
-    document.getElementById('rankSort').addEventListener('change', updateRanking);
-    document.getElementById('rankTopN').addEventListener('change', updateRanking);
+    document.getElementById('rankSort').addEventListener('change', () => {
+      rankPage = 0;
+      updateRanking();
+    });
+    document.getElementById('rankPrev').addEventListener('click', () => {
+      if (rankPage > 0) { rankPage--; updateRanking(); }
+    });
+    document.getElementById('rankNext').addEventListener('click', () => {
+      rankPage++;
+      updateRanking();
+    });
+    document.getElementById('btnRankXlsx').addEventListener('click', downloadRankingXlsx);
 
     document.getElementById('btnAplicar').addEventListener('click', async () => {
       const desde = document.getElementById('desde').value; // yyyy-mm-dd
