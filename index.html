@@ -8,23 +8,27 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg-primary: #0a0a0f;
-      --bg-secondary: #12121a;
-      --bg-card: #1a1a24;
-      --bg-card-hover: #22222e;
-      --accent-primary: #00d4aa;
-      --accent-secondary: #7c3aed;
-      --accent-tertiary: #3b82f6;
-      --accent-warning: #f59e0b;
-      --accent-danger: #ef4444;
-      --text-primary: #ffffff;
-      --text-secondary: #a1a1aa;
-      --text-muted: #71717a;
-      --border-color: #27272a;
-      --gradient-1: linear-gradient(135deg, #00d4aa 0%, #00a884 100%);
-      --gradient-2: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-      --gradient-3: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      --gradient-4: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      /* Paleta corporativa CHEMES - clara, inspirada en la imagen de referencia */
+      --bg-primary:       #f0f4f7;
+      --bg-secondary:     #e4ecf1;
+      --bg-card:          #ffffff;
+      --bg-card-hover:    #f5f9fb;
+      --accent-primary:   #2596be;   /* azul CHEMES principal */
+      --accent-light:     #7ecfe0;   /* celeste claro */
+      --accent-mid:       #1a7a9e;   /* azul oscuro hover */
+      --accent-secondary: #14637f;   /* azul petróleo */
+      --accent-warning:   #c47d0e;   /* ámbar oscuro */
+      --accent-danger:    #c0392b;   /* rojo */
+      --accent-success:   #1a7a4e;   /* verde */
+      --text-primary:     #1a2e3b;
+      --text-secondary:   #4a6375;
+      --text-muted:       #7a96a6;
+      --border-color:     #ccdde6;
+      --border-accent:    #2596be;
+      --gradient-1: linear-gradient(135deg, #2596be 0%, #7ecfe0 100%);
+      --gradient-2: linear-gradient(135deg, #14637f 0%, #2596be 100%);
+      --gradient-3: linear-gradient(135deg, #1a7a4e 0%, #27ae60 100%);
+      --gradient-4: linear-gradient(135deg, #c47d0e 0%, #e6a817 100%);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,71 +40,66 @@
       min-height: 100vh;
     }
 
-    .bg-pattern {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background:
-        radial-gradient(ellipse at 20% 20%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%);
-    }
-
     header {
-      position: relative;
-      z-index: 10;
-      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.75rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--border-color);
-      backdrop-filter: blur(10px);
-      background: rgba(10, 10, 15, 0.8);
+      background: var(--accent-primary);
+      border-bottom: 2px solid var(--accent-mid);
+      box-shadow: 0 2px 8px rgba(37,150,190,0.18);
     }
 
     .logo { display: flex; align-items: center; gap: 0.75rem; }
 
     .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: var(--gradient-1);
-      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      background: #ffffff;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 0.85rem;
+      color: var(--accent-primary);
     }
 
-    .logo-text { font-size: 1.25rem; font-weight: 700; }
-    .logo-text span { color: var(--accent-primary); }
+    .logo-text {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .logo-text span { color: var(--accent-light); }
 
     .header-right { display: flex; align-items: center; gap: 1rem; }
 
     .last-update {
       font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--text-muted);
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.75);
     }
-    .last-update span { color: var(--accent-primary); }
+    .last-update span { color: #ffffff; font-weight: 700; }
 
     .btn-reload {
       display: flex;
       align-items: center;
       gap: 0.4rem;
-      padding: 0.5rem 1rem;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      color: var(--text-secondary);
-      font-weight: 500;
+      padding: 0.45rem 1rem;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 7px;
+      color: #ffffff;
+      font-weight: 600;
       font-size: 0.75rem;
       cursor: pointer;
       font-family: inherit;
       transition: all 0.2s;
     }
-
-    .btn-reload:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .btn-reload:hover { background: rgba(255,255,255,0.28); }
     .btn-reload.loading { pointer-events: none; opacity: 0.6; }
     .btn-reload svg { width: 14px; height: 14px; }
     .btn-reload.loading svg { animation: spin 1s linear infinite; }
@@ -108,13 +107,12 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     main {
-      position: relative;
-      z-index: 10;
       max-width: 1600px;
       margin: 0 auto;
-      padding: 1.5rem 2rem;
+      padding: 1.25rem 2rem;
     }
 
+    /* Loading / Error */
     .loading-screen {
       display: flex;
       flex-direction: column;
@@ -136,9 +134,9 @@
     .loading-text { color: var(--text-secondary); font-size: 0.85rem; }
 
     .error-msg {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #ef4444;
+      background: rgba(192, 57, 43, 0.08);
+      border: 1px solid rgba(192, 57, 43, 0.35);
+      color: var(--accent-danger);
       padding: 1rem 1.5rem;
       border-radius: 10px;
       text-align: center;
@@ -150,34 +148,35 @@
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
-      margin-bottom: 1.0rem;
-      padding: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.85rem 1.25rem;
       background: var(--bg-card);
-      border-radius: 12px;
+      border-radius: 10px;
       border: 1px solid var(--border-color);
       align-items: flex-end;
+      box-shadow: 0 1px 4px rgba(37,150,190,0.07);
     }
 
     .control-group {
       display: flex;
       flex-direction: column;
-      gap: 0.35rem;
+      gap: 0.3rem;
     }
 
     .control-label {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
       font-weight: 600;
     }
 
     .control-select,
     .control-input {
-      padding: 0.5rem 0.75rem;
+      padding: 0.45rem 0.75rem;
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 7px;
       color: var(--text-primary);
       font-family: inherit;
       font-size: 0.8rem;
@@ -185,7 +184,11 @@
     }
 
     .control-select { cursor: pointer; }
-    .control-select:focus, .control-input:focus { outline: none; border-color: var(--accent-primary); }
+    .control-select:focus, .control-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(37,150,190,0.12);
+    }
 
     .period-info {
       margin-left: auto;
@@ -195,48 +198,49 @@
     }
 
     .period-info .current { color: var(--accent-primary); font-weight: 600; }
-    .period-info .compare { color: var(--text-secondary); }
 
-    /* Date range row (calendar) */
+    /* Date range row */
     .date-range-row {
       display: none;
       gap: 1rem;
-      margin-bottom: 1.5rem;
-      padding: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.85rem 1.25rem;
       background: var(--bg-card);
-      border-radius: 12px;
+      border-radius: 10px;
       border: 1px solid var(--border-color);
       align-items: flex-end;
       flex-wrap: wrap;
     }
 
     .btn-apply {
-      padding: 0.55rem 1rem;
-      background: var(--gradient-1);
+      padding: 0.5rem 1rem;
+      background: var(--accent-primary);
       border: 0;
-      border-radius: 10px;
-      color: #04110d;
+      border-radius: 8px;
+      color: #fff;
       font-weight: 700;
       cursor: pointer;
       font-size: 0.8rem;
+      transition: background 0.2s;
     }
-    .btn-apply:hover { filter: brightness(1.05); }
+    .btn-apply:hover { background: var(--accent-mid); }
 
     /* KPIs */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 1rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
     }
 
     .kpi-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 1.25rem;
+      border-radius: 12px;
+      padding: 1.2rem 1.25rem;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 1px 4px rgba(37,150,190,0.07);
     }
 
     .kpi-card::before {
@@ -247,17 +251,18 @@
       background: var(--kpi-gradient, var(--gradient-1));
     }
 
-    .kpi-card.purple { --kpi-gradient: var(--gradient-2); }
-    .kpi-card.blue { --kpi-gradient: var(--gradient-3); }
-    .kpi-card.orange { --kpi-gradient: var(--gradient-4); }
+    .kpi-card.teal2   { --kpi-gradient: var(--gradient-2); }
+    .kpi-card.green   { --kpi-gradient: var(--gradient-3); }
+    .kpi-card.amber   { --kpi-gradient: var(--gradient-4); }
 
-    .kpi-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+    .kpi-label { font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
 
     .kpi-value {
-      font-size: 1.75rem;
+      font-size: 1.7rem;
       font-weight: 700;
       font-family: 'Space Mono', monospace;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.45rem;
+      color: var(--accent-primary);
     }
 
     .kpi-compare {
@@ -270,13 +275,13 @@
     .kpi-prev { color: var(--text-muted); }
 
     .kpi-change {
-      padding: 0.15rem 0.4rem;
+      padding: 0.15rem 0.45rem;
       border-radius: 4px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
-    .kpi-change.up { background: rgba(0, 212, 170, 0.15); color: var(--accent-primary); }
-    .kpi-change.down { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+    .kpi-change.up   { background: rgba(26,122,78,0.10); color: var(--accent-success); }
+    .kpi-change.down { background: rgba(192,57,43,0.10); color: var(--accent-danger); }
 
     /* Charts */
     .charts-grid {
@@ -289,8 +294,9 @@
     .chart-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 14px;
+      border-radius: 12px;
       padding: 1.25rem;
+      box-shadow: 0 1px 4px rgba(37,150,190,0.07);
     }
 
     .chart-header {
@@ -302,10 +308,16 @@
       flex-wrap: wrap;
     }
 
-    .chart-title { font-size: 0.9rem; font-weight: 600; }
+    .chart-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
 
     .chart-select {
-      padding: 0.35rem 0.6rem;
+      padding: 0.32rem 0.6rem;
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: 6px;
@@ -340,9 +352,10 @@
     }
 
     .donut-center-value {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       font-family: 'Space Mono', monospace;
+      color: var(--accent-primary);
     }
 
     .donut-center-label { font-size: 0.6rem; color: var(--text-muted); }
@@ -353,9 +366,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.4rem 0;
+      padding: 0.38rem 0;
       border-bottom: 1px solid var(--border-color);
-      font-size: 0.75rem;
+      font-size: 0.74rem;
     }
 
     .legend-item:last-child { border-bottom: none; }
@@ -366,46 +379,60 @@
 
     .legend-name { color: var(--text-secondary); }
 
-    .legend-value { font-family: 'Space Mono', monospace; font-weight: 600; font-size: 0.7rem; }
+    .legend-value {
+      font-family: 'Space Mono', monospace;
+      font-weight: 600;
+      font-size: 0.7rem;
+      color: var(--text-primary);
+    }
 
     /* Table cards */
     .table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
       margin-bottom: 1rem;
+      box-shadow: 0 1px 4px rgba(37,150,190,0.07);
     }
 
     .table-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 1.25rem;
+      padding: 0.85rem 1.25rem;
       border-bottom: 1px solid var(--border-color);
       gap: 0.75rem;
       flex-wrap: wrap;
+      background: var(--bg-secondary);
     }
 
-    .table-title { font-size: 0.9rem; font-weight: 600; }
+    .table-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
 
     .data-table { width: 100%; border-collapse: collapse; }
 
     .data-table th {
       text-align: left;
-      padding: 0.75rem 1.25rem;
-      font-size: 0.65rem;
-      font-weight: 600;
+      padding: 0.65rem 1.25rem;
+      font-size: 0.63rem;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
       background: var(--bg-secondary);
     }
 
     .data-table td {
-      padding: 0.75rem 1.25rem;
+      padding: 0.68rem 1.25rem;
       font-size: 0.8rem;
       border-bottom: 1px solid var(--border-color);
-      vertical-align: top;
+      vertical-align: middle;
     }
 
     .data-table tr:hover td { background: var(--bg-card-hover); }
@@ -420,37 +447,63 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
-      font-size: 0.6rem;
-      color: #000;
+      font-weight: 700;
+      font-size: 0.58rem;
+      color: #fff;
     }
 
     .amount { font-family: 'Space Mono', monospace; font-weight: 600; }
-    .amount.positive { color: var(--accent-primary); }
+    .amount.positive { color: var(--accent-secondary); }
     .amount.negative { color: var(--accent-danger); }
 
     .change-badge {
-      font-size: 0.7rem;
-      padding: 0.2rem 0.4rem;
+      font-size: 0.68rem;
+      padding: 0.2rem 0.45rem;
       border-radius: 4px;
-      font-weight: 600;
+      font-weight: 700;
       white-space: nowrap;
     }
 
-    .change-badge.up { background: rgba(0, 212, 170, 0.15); color: var(--accent-primary); }
-    .change-badge.down { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+    .change-badge.up   { background: rgba(26,122,78,0.10); color: var(--accent-success); }
+    .change-badge.down { background: rgba(192,57,43,0.10); color: var(--accent-danger); }
 
     .muted { color: var(--text-muted); }
 
-    /* Channel colors */
-    .bg-ml { background: var(--gradient-1); }
-    .bg-web { background: var(--gradient-2); }
-    .bg-bna { background: var(--gradient-3); }
-    .bg-icbc { background: var(--gradient-4); }
-    .bg-clic { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
-    .bg-comafi { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
-    .bg-macro { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
-    .bg-other { background: linear-gradient(135deg, #71717a 0%, #52525b 100%); }
+    /* NC badge */
+    .nc-badge {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      font-weight: 600;
+      background: rgba(192,57,43,0.09);
+      color: var(--accent-danger);
+    }
+
+    /* Channel avatar colors - paleta CHEMES */
+    .bg-ml     { background: linear-gradient(135deg, #2596be 0%, #7ecfe0 100%); }
+    .bg-web    { background: linear-gradient(135deg, #14637f 0%, #2596be 100%); }
+    .bg-bna    { background: linear-gradient(135deg, #1a7a4e 0%, #27ae60 100%); }
+    .bg-icbc   { background: linear-gradient(135deg, #c47d0e 0%, #e6a817 100%); }
+    .bg-clic   { background: linear-gradient(135deg, #2596be 0%, #1a7a9e 100%); }
+    .bg-comafi { background: linear-gradient(135deg, #6b3ca8 0%, #9b59b6 100%); }
+    .bg-macro  { background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); }
+    .bg-other  { background: linear-gradient(135deg, #4a6375 0%, #7a96a6 100%); }
+
+    /* Nota NC */
+    .nc-info-bar {
+      background: rgba(37,150,190,0.06);
+      border: 1px solid rgba(37,150,190,0.18);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nc-info-bar strong { color: var(--accent-primary); }
 
     @media (max-width: 1200px) {
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -463,18 +516,16 @@
       .kpi-grid { grid-template-columns: 1fr; }
       .controls-bar { flex-direction: column; align-items: stretch; }
       .period-info { margin-left: 0; text-align: left; margin-top: 0.5rem; }
-      .date-range-row { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
 
 <body>
-  <div class="bg-pattern"></div>
 
   <header>
     <div class="logo">
       <div class="logo-icon">CH</div>
-      <div class="logo-text">CHEMES <span>Ventas</span></div>
+      <div class="logo-text">CHEMES <span>· Ventas</span></div>
     </div>
     <div class="header-right">
       <div class="last-update">Actualizado: <span id="lastUpdate">--</span></div>
@@ -495,7 +546,7 @@
 
     <div id="errorScreen" class="loading-screen" style="display:none;">
       <div class="error-msg" id="errorMsg">Error</div>
-      <button class="btn-reload" id="btnRetry" style="margin-top:1rem;">Reintentar</button>
+      <button class="btn-reload" id="btnRetry" style="margin-top:1rem; background:var(--accent-primary);">Reintentar</button>
     </div>
 
     <div id="dashboard" style="display:none;">
@@ -523,7 +574,7 @@
         </div>
         <div class="period-info">
           <div class="current" id="periodLabel">--</div>
-          <div class="compare">vs <span id="compareLabel">--</span></div>
+          <div>vs <span id="compareLabel">--</span></div>
         </div>
       </div>
 
@@ -538,9 +589,15 @@
           <input class="control-input" type="date" id="hasta">
         </div>
         <button class="btn-apply" id="btnAplicar">Aplicar</button>
-        <div class="muted" style="font-size:0.75rem; margin-left:auto;">
-          Nota: el rango es dia calendario (incluye Desde y Hasta).
+        <div class="muted" style="font-size:0.72rem; margin-left:auto;">
+          Rango inclusivo (Desde y Hasta incluidos).
         </div>
+      </div>
+
+      <!-- Nota informativa sobre NC -->
+      <div class="nc-info-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Ventas Netas = <strong>Facturas</strong> − <strong>Notas de Crédito</strong>. Los importes de NC se descuentan del total y del ticket promedio.</span>
       </div>
 
       <!-- KPIs -->
@@ -553,7 +610,7 @@
             <span class="kpi-change" id="kpiSalesChange">0%</span>
           </div>
         </div>
-        <div class="kpi-card purple">
+        <div class="kpi-card teal2">
           <div class="kpi-label">Unidades</div>
           <div class="kpi-value" id="kpiUnits">0</div>
           <div class="kpi-compare">
@@ -561,15 +618,15 @@
             <span class="kpi-change" id="kpiUnitsChange">0%</span>
           </div>
         </div>
-        <div class="kpi-card blue">
-          <div class="kpi-label">Comprobantes</div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Comprobantes (FAC)</div>
           <div class="kpi-value" id="kpiDocs">0</div>
           <div class="kpi-compare">
             <span class="kpi-prev">Anterior: <span id="kpiDocsPrev">0</span></span>
             <span class="kpi-change" id="kpiDocsChange">0%</span>
           </div>
         </div>
-        <div class="kpi-card orange">
+        <div class="kpi-card amber">
           <div class="kpi-label">Ticket Promedio</div>
           <div class="kpi-value" id="kpiTicket">$0</div>
           <div class="kpi-compare">
@@ -583,7 +640,7 @@
       <div class="charts-grid">
         <div class="chart-card">
           <div class="chart-header">
-            <h3 class="chart-title">Evolucion de Ventas</h3>
+            <h3 class="chart-title">Evolución de Ventas Netas</h3>
             <select class="chart-select" id="groupSelect">
               <option value="daily">Diario</option>
               <option value="weekly">Semanal</option>
@@ -604,7 +661,7 @@
               <svg width="160" height="160" viewBox="0 0 160 160" id="donutSvg"></svg>
               <div class="donut-center">
                 <div class="donut-center-value" id="donutValue">$0</div>
-                <div class="donut-center-label">total</div>
+                <div class="donut-center-label">neto total</div>
               </div>
             </div>
             <div class="donut-legend" id="donutLegend"></div>
@@ -612,10 +669,10 @@
         </div>
       </div>
 
-      <!-- Ranking -->
+      <!-- Ranking SKU -->
       <div class="table-card">
         <div class="table-header">
-          <h3 class="table-title">Top Articulos (SKU)</h3>
+          <h3 class="table-title">Top Artículos (SKU)</h3>
           <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
             <select class="chart-select" id="rankSort">
               <option value="importe">Mayor Importe</option>
@@ -632,16 +689,16 @@
           <thead>
             <tr>
               <th>SKU</th>
-              <th>Descripcion</th>
+              <th>Descripción</th>
               <th>Unidades</th>
-              <th>Importe</th>
+              <th>Importe Neto</th>
             </tr>
           </thead>
           <tbody id="rankBody"></tbody>
         </table>
       </div>
 
-      <!-- Table -->
+      <!-- Table canales -->
       <div class="table-card">
         <div class="table-header">
           <h3 class="table-title">Detalle por Canal de Venta</h3>
@@ -655,11 +712,11 @@
           <thead>
             <tr>
               <th>Canal</th>
-              <th>Importe</th>
+              <th>Importe Neto</th>
               <th>Facturas</th>
               <th>N/C</th>
               <th>Anterior</th>
-              <th>Variacion</th>
+              <th>Variación</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -674,8 +731,35 @@
     // CONFIG
     // =========================================================================
     const API_BASE = "https://script.google.com/macros/s/AKfycbxb23EKX0EfFvy9GkFpA5kKmbbEkUV2Yd_WJD1oTMaRwGqAgx7tfBu2KmDNZrEi49qWDQ/exec";
-    // Compatibilidad con versiones viejas (por si quedó alguna referencia)
-    const DATA_API_URL = API_BASE;
+
+    // Paleta corporativa CHEMES para gráficos
+    const COLORS = [
+      '#2596be', '#7ecfe0', '#14637f', '#1a7a4e',
+      '#c47d0e', '#6b3ca8', '#c0392b', '#4a6375'
+    ];
+
+    const CHANNEL_CONFIG = {
+      'MERCADO LIBRE': { name: 'MercadoLibre',  bg: 'bg-ml',     abbr: 'ME' },
+      'VENTAS WEB':    { name: 'E-commerce Web', bg: 'bg-web',    abbr: 'WE' },
+      'SHOP BNA':      { name: 'Tienda BNA',     bg: 'bg-bna',    abbr: 'SH' },
+      'SHOP BNA PROMO':{ name: 'BNA Promo',      bg: 'bg-bna',    abbr: 'BP' },
+      'ICBC MALL':     { name: 'ICBC Mall',      bg: 'bg-icbc',   abbr: 'IC' },
+      'TIENDA CLIC':   { name: 'Tienda Clic',    bg: 'bg-clic',   abbr: 'TC' },
+      'COMAFI':        { name: 'Comafi',          bg: 'bg-comafi', abbr: 'CO' },
+      'TIENDRA MACRO': { name: 'Tienda Macro',   bg: 'bg-macro',  abbr: 'TM' }
+    };
+
+    // =========================================================================
+    // STATE
+    // =========================================================================
+    let rawData = [];
+    let filteredData = [];
+    let compareData = [];
+    let evolutionChart = null;
+    let maxDataDate = null;
+    let customStart = null;
+    let customEnd   = null;
+    let DATE_STYLE  = null;
 
     // =========================================================================
     // JSONP helpers
@@ -700,46 +784,20 @@
 
         window[callbackName] = (payload) => { cleanup(); resolve(payload); };
         script.onerror = () => { cleanup(); reject(new Error('Error cargando JSONP')); };
-
         script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
         document.body.appendChild(script);
       });
     }
 
     // =========================================================================
-    // STATE
-    // =========================================================================
-    let rawData = [];
-    let filteredData = [];
-    let compareData = [];
-    let evolutionChart = null;
-    let maxDataDate = null; // Fecha mas reciente de los datos
-    let customStart = null; // Date
-    let customEnd = null;   // Date inclusive
-
-    // Detecta formato predominante de fechas
-    let DATE_STYLE = null; // 'MDY' o 'DMY'
-
-    const COLORS = ['#00d4aa', '#7c3aed', '#3b82f6', '#f59e0b', '#ef4444', '#14b8a6', '#f97316', '#6366f1'];
-
-    const CHANNEL_CONFIG = {
-      'MERCADO LIBRE': { name: 'MercadoLibre', bg: 'bg-ml', abbr: 'ME' },
-      'VENTAS WEB': { name: 'E-commerce Web', bg: 'bg-web', abbr: 'VE' },
-      'SHOP BNA': { name: 'Tienda BNA', bg: 'bg-bna', abbr: 'SH' },
-      'SHOP BNA PROMO': { name: 'BNA Promo', bg: 'bg-bna', abbr: 'BP' },
-      'ICBC MALL': { name: 'ICBC Mall', bg: 'bg-icbc', abbr: 'IC' },
-      'TIENDA CLIC': { name: 'Tienda Clic', bg: 'bg-clic', abbr: 'TI' },
-      'COMAFI': { name: 'Comafi', bg: 'bg-comafi', abbr: 'CO' },
-      'TIENDRA MACRO': { name: 'Tienda Macro', bg: 'bg-macro', abbr: 'TM' }
-    };
-
-    // =========================================================================
     // UTILS
     // =========================================================================
     function formatCurrency(v) {
       const abs = Math.abs(v);
-      if (abs >= 1e6) return (v < 0 ? '-' : '') + '$' + (abs / 1e6).toFixed(2) + 'M';
-      if (abs >= 1e3) return (v < 0 ? '-' : '') + '$' + (abs / 1e3).toFixed(1) + 'K';
+      const sign = v < 0 ? '-' : '';
+      if (abs >= 1e9) return sign + '$' + (abs / 1e9).toFixed(2) + 'B';
+      if (abs >= 1e6) return sign + '$' + (abs / 1e6).toFixed(2) + 'M';
+      if (abs >= 1e3) return sign + '$' + (abs / 1e3).toFixed(1) + 'K';
       return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(v);
     }
 
@@ -749,52 +807,37 @@
 
     function detectDateStyle(samples) {
       let mdy = 0, dmy = 0;
-
       for (const s0 of samples) {
         if (!s0) continue;
-        const s = String(s0).trim();
-        const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        const m = String(s0).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
         if (!m) continue;
-
-        const a = parseInt(m[1], 10);
-        const b = parseInt(m[2], 10);
-
+        const a = parseInt(m[1], 10), b = parseInt(m[2], 10);
         if (a > 12 && b <= 12) dmy++;
         else if (b > 12 && a <= 12) mdy++;
       }
-
-      if (mdy === 0 && dmy === 0) return 'DMY'; // default AR
+      if (mdy === 0 && dmy === 0) return 'DMY';
       return (mdy >= dmy) ? 'MDY' : 'DMY';
     }
 
     function parseDate(s) {
       if (!s) return null;
       if (s instanceof Date) return s;
-
       s = String(s).trim();
 
-      // ISO: YYYY-MM-DD
       if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
         const d = new Date(s.substring(0, 10) + 'T00:00:00');
         return isNaN(d) ? null : d;
       }
 
-      // Slash: ??/??/YYYY (con o sin hora / AMPM)
       const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (m) {
-        const p1 = parseInt(m[1], 10);
-        const p2 = parseInt(m[2], 10);
-        const y  = parseInt(m[3], 10);
-
+        const p1 = parseInt(m[1], 10), p2 = parseInt(m[2], 10), y = parseInt(m[3], 10);
         const style = DATE_STYLE || ((p1 > 12 && p2 <= 12) ? 'DMY' : (p2 > 12 && p1 <= 12) ? 'MDY' : 'DMY');
-
         const month = (style === 'MDY') ? (p1 - 1) : (p2 - 1);
         const day   = (style === 'MDY') ? p2 : p1;
-
         const d = new Date(y, month, day);
         return isNaN(d) ? null : d;
       }
-
       return null;
     }
 
@@ -808,15 +851,15 @@
     }
 
     // =========================================================================
-    // DATE RANGES - Usa la fecha mas reciente de los datos como referencia
+    // DATE RANGES
     // =========================================================================
     function getDateRange(period) {
-      const now = maxDataDate || new Date();
+      const now   = maxDataDate || new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
       switch (period) {
         case 'today':
-          return { start: today, end: new Date(today.getTime() + 86400000), label: 'Ultimo dia (' + today.toLocaleDateString('es-AR') + ')' };
+          return { start: today, end: new Date(today.getTime() + 86400000), label: 'Hoy (' + today.toLocaleDateString('es-AR') + ')' };
         case 'week': {
           const dow = today.getDay();
           const mon = new Date(today);
@@ -839,18 +882,18 @@
           return {
             start: new Date(now.getFullYear(), now.getMonth() - 2, 1),
             end: new Date(today.getTime() + 86400000),
-            label: 'Ultimos 3 Meses'
+            label: 'Últimos 3 Meses'
           };
         case '6months':
           return {
             start: new Date(now.getFullYear(), now.getMonth() - 5, 1),
             end: new Date(today.getTime() + 86400000),
-            label: 'Ultimos 6 Meses'
+            label: 'Últimos 6 Meses'
           };
         case 'custom': {
           if (!customStart || !customEnd) return { start: null, end: null, label: 'Rango (sin definir)' };
-          const start = new Date(customStart.getFullYear(), customStart.getMonth(), customStart.getDate());
-          const endInc = new Date(customEnd.getFullYear(), customEnd.getMonth(), customEnd.getDate());
+          const start   = new Date(customStart.getFullYear(), customStart.getMonth(), customStart.getDate());
+          const endInc  = new Date(customEnd.getFullYear(), customEnd.getMonth(), customEnd.getDate());
           const endExcl = new Date(endInc.getTime() + 86400000);
           return { start, end: endExcl, label: 'Rango: ' + start.toLocaleDateString('es-AR') + ' a ' + endInc.toLocaleDateString('es-AR') };
         }
@@ -889,19 +932,16 @@
           };
         case 'custom': {
           if (!customStart || !customEnd) return { start: null, end: null, label: 'N/A' };
-          const start = new Date(customStart.getFullYear(), customStart.getMonth(), customStart.getDate());
-          const endInc = new Date(customEnd.getFullYear(), customEnd.getMonth(), customEnd.getDate());
-          const endExcl = new Date(endInc.getTime() + 86400000);
-          const duration = endExcl.getTime() - start.getTime();
-          const prevEnd = start;
-          const prevStart = new Date(start.getTime() - duration);
-          return { start: prevStart, end: prevEnd, label: 'Periodo anterior' };
+          const start   = new Date(customStart.getFullYear(), customStart.getMonth(), customStart.getDate());
+          const endExcl = new Date(customEnd.getFullYear(), customEnd.getMonth(), customEnd.getDate() + 1);
+          const dur = endExcl.getTime() - start.getTime();
+          return { start: new Date(start.getTime() - dur), end: start, label: 'Periodo anterior' };
         }
         default: {
           const { start, end } = getDateRange(period);
           if (!start) return { start: null, end: null, label: 'N/A' };
-          const duration = end.getTime() - start.getTime();
-          return { start: new Date(start.getTime() - duration), end: start, label: 'Periodo anterior' };
+          const dur = end.getTime() - start.getTime();
+          return { start: new Date(start.getTime() - dur), end: start, label: 'Periodo anterior' };
         }
       }
     }
@@ -917,7 +957,7 @@
     }
 
     // =========================================================================
-    // UI
+    // UI STATES
     // =========================================================================
     function setLoading() {
       document.getElementById('loadingScreen').style.display = 'flex';
@@ -944,7 +984,7 @@
     }
 
     // =========================================================================
-    // DATA LOADING (Ventas)
+    // DATA LOADING
     // =========================================================================
     async function loadData(opts) {
       const btn = document.getElementById('btnReload');
@@ -953,30 +993,27 @@
 
       try {
         const desde = opts && opts.desde ? opts.desde : '';
-      const hasta = opts && opts.hasta ? opts.hasta : '';
-
+        const hasta = opts && opts.hasta ? opts.hasta : '';
         const urlVentas = API_BASE + '?' + qs({ api: 'ventas', desde, hasta });
         const payload = await jsonp(urlVentas, '__cbVentas_' + Date.now());
 
         if (!payload || payload.error) throw new Error(payload && payload.message ? payload.message : 'Error del servidor');
         if (!payload.data || !payload.data.length) throw new Error('Sin datos');
 
-        // Detectar estilo de fecha en base a muestra
-        const sampleFechas = payload.data.slice(0, 300).map(x => x.fecha);
-        DATE_STYLE = detectDateStyle(sampleFechas);
+        DATE_STYLE = detectDateStyle(payload.data.slice(0, 300).map(x => x.fecha));
 
         rawData = payload.data.map(r => ({
-          fecha: parseDate(r.fecha),
-          tipo: String(r.tipo || '').toUpperCase().trim(),
+          fecha:          parseDate(r.fecha),
+          tipo:           String(r.tipo || '').toUpperCase().trim(),
           nroComprobante: String(r.nroComprobante || ''),
-          canal: String(r.canal || '').toUpperCase().trim(),
-          sku: String(r.sku || ''),
-          descripcion: String(r.descripcion || ''),
-          cantidad: Number(r.cantidad) || 0,
-          total: Number(r.total) || 0
+          canal:          String(r.canal || '').toUpperCase().trim(),
+          sku:            String(r.sku || ''),
+          descripcion:    String(r.descripcion || ''),
+          cantidad:       Number(r.cantidad) || 0,
+          total:          Number(r.total) || 0
         })).filter(r => r.fecha);
 
-        if (!rawData.length) throw new Error('Todas las fechas quedaron invalidas. Revisar formato de Fecha en CSV.');
+        if (!rawData.length) throw new Error('Todas las fechas quedaron inválidas. Revisar formato de Fecha en CSV.');
 
         maxDataDate = rawData.reduce((max, r) => r.fecha > max ? r.fecha : max, rawData[0].fecha);
 
@@ -1008,13 +1045,13 @@
     // FILTERS
     // =========================================================================
     function applyFilters() {
-      const period = document.getElementById('periodSelect').value;
+      const period  = document.getElementById('periodSelect').value;
       const channel = document.getElementById('channelSelect').value;
 
       const mainRange = getDateRange(period);
       const compRange = getCompareRange(period);
 
-      document.getElementById('periodLabel').textContent = mainRange.label;
+      document.getElementById('periodLabel').textContent  = mainRange.label;
       document.getElementById('compareLabel').textContent = compRange.label;
 
       const channelFiltered = filterByChannel(rawData, channel);
@@ -1025,26 +1062,42 @@
     }
 
     // =========================================================================
-    // CALCULATIONS
+    // CALCULATIONS - NC SE RESTAN
     // =========================================================================
+
+    /**
+     * calcMetrics: Ventas Netas = SUM(FAC.total) + SUM(NC.total)
+     * Nota: los totales de NC ya vienen negativos desde Tango.
+     * Si llegaran positivos, se restan manualmente.
+     * Se usa Math.abs para unidades (no queremos negativo en N/C).
+     */
+    function isNC(tipo) {
+      return tipo === 'N/C' || tipo === 'NC';
+    }
+
     function calcMetrics(data) {
-      let importe = 0, unidades = 0;
+      let importeFAC = 0;
+      let importeNC  = 0;
+      let unidades   = 0;
       const docs = new Set();
 
       data.forEach(r => {
         if (r.tipo === 'FAC') {
-          importe += r.total;
-          unidades += Math.abs(r.cantidad);
+          importeFAC += r.total;
+          unidades   += Math.abs(r.cantidad);
           docs.add(r.nroComprobante);
-        } else if (r.tipo === 'N/C' || r.tipo === 'NC') {
-          importe += r.total;
+        } else if (isNC(r.tipo)) {
+          // Si el importe de NC viene positivo en el CSV, se resta; si ya viene negativo, suma (pero negativo)
+          // Restamos siempre el valor absoluto para garantizar descuento correcto
+          importeNC -= Math.abs(r.total);
         }
       });
 
-      const numDocs = docs.size;
-      const ticket = numDocs > 0 ? importe / numDocs : 0;
+      const importe  = importeFAC + importeNC;   // neto
+      const numDocs  = docs.size;
+      const ticket   = numDocs > 0 ? importe / numDocs : 0;
 
-      return { importe, unidades, numDocs, ticket };
+      return { importe, importeFAC, importeNC, unidades, numDocs, ticket };
     }
 
     function calcByChannel(data) {
@@ -1052,22 +1105,25 @@
 
       data.forEach(r => {
         const c = r.canal;
-        if (!grouped[c]) grouped[c] = { importe: 0, facturas: new Set(), nc: new Set(), unidades: 0 };
+        if (!grouped[c]) grouped[c] = { importeFAC: 0, importeNC: 0, facturas: new Set(), nc: new Set(), unidades: 0 };
 
         if (r.tipo === 'FAC') {
-          grouped[c].importe += r.total;
+          grouped[c].importeFAC += r.total;
           grouped[c].facturas.add(r.nroComprobante);
           grouped[c].unidades += Math.abs(r.cantidad);
-        } else if (r.tipo === 'N/C' || r.tipo === 'NC') {
+        } else if (isNC(r.tipo)) {
+          grouped[c].importeNC -= Math.abs(r.total);  // NC resta
           grouped[c].nc.add(r.nroComprobante);
         }
       });
 
       return Object.entries(grouped).map(([canal, d]) => ({
         canal,
-        importe: d.importe,
+        importe:  d.importeFAC + d.importeNC,   // neto por canal
+        importeFAC: d.importeFAC,
+        importeNC:  d.importeNC,
         facturas: d.facturas.size,
-        nc: d.nc.size,
+        nc:       d.nc.size,
         unidades: d.unidades
       })).sort((a, b) => b.importe - a.importe);
     }
@@ -1078,12 +1134,32 @@
         if (r.tipo !== 'FAC') return;
         const sku = (r.sku || '').trim();
         if (!sku) return;
-        if (!bySku[sku]) bySku[sku] = { sku, descripcion: (r.descripcion || '').trim(), unidades: 0, importe: 0 };
+        if (!bySku[sku]) bySku[sku] = { sku, descripcion: '', unidades: 0, importe: 0 };
         if (!bySku[sku].descripcion && r.descripcion) bySku[sku].descripcion = String(r.descripcion).trim();
         bySku[sku].unidades += Math.abs(r.cantidad);
-        bySku[sku].importe += r.total;
+        bySku[sku].importe  += r.total;
       });
       return Object.values(bySku);
+    }
+
+    // =========================================================================
+    // EVOLUTION: agrupa FAC + NC para mostrar ventas netas por periodo
+    // =========================================================================
+    function calcEvolution(data, group) {
+      const grouped = {};
+
+      data.forEach(r => {
+        const key = getGroupKey(r.fecha, group);
+        if (!grouped[key]) grouped[key] = 0;
+
+        if (r.tipo === 'FAC') {
+          grouped[key] += r.total;
+        } else if (isNC(r.tipo)) {
+          grouped[key] -= Math.abs(r.total);
+        }
+      });
+
+      return grouped;
     }
 
     // =========================================================================
@@ -1101,31 +1177,26 @@
       const curr = calcMetrics(filteredData);
       const prev = calcMetrics(compareData);
 
-      setKPI('kpiSales', 'kpiSalesPrev', 'kpiSalesChange', curr.importe, prev.importe, true);
-      setKPI('kpiUnits', 'kpiUnitsPrev', 'kpiUnitsChange', curr.unidades, prev.unidades, false);
-      setKPI('kpiDocs', 'kpiDocsPrev', 'kpiDocsChange', curr.numDocs, prev.numDocs, false);
-      setKPI('kpiTicket', 'kpiTicketPrev', 'kpiTicketChange', curr.ticket, prev.ticket, true);
+      setKPI('kpiSales',  'kpiSalesPrev',  'kpiSalesChange',  curr.importe,  prev.importe,  true);
+      setKPI('kpiUnits',  'kpiUnitsPrev',  'kpiUnitsChange',  curr.unidades, prev.unidades, false);
+      setKPI('kpiDocs',   'kpiDocsPrev',   'kpiDocsChange',   curr.numDocs,  prev.numDocs,  false);
+      setKPI('kpiTicket', 'kpiTicketPrev', 'kpiTicketChange', curr.ticket,   prev.ticket,   true);
     }
 
     function setKPI(valId, prevId, changeId, curr, prev, isCurrency) {
-      document.getElementById(valId).textContent = isCurrency ? formatCurrency(curr) : formatNumber(curr);
-      document.getElementById(prevId).textContent = isCurrency ? formatCurrency(prev) : formatNumber(prev);
+      const fmt = v => isCurrency ? formatCurrency(v) : formatNumber(v);
+      document.getElementById(valId).textContent = fmt(curr);
+      document.getElementById(prevId).textContent = fmt(prev);
 
       const pct = calcChange(curr, prev);
-      const el = document.getElementById(changeId);
+      const el  = document.getElementById(changeId);
       el.textContent = (pct >= 0 ? '+' : '') + Math.round(pct) + '%';
-      el.className = 'kpi-change ' + (pct >= 0 ? 'up' : 'down');
+      el.className   = 'kpi-change ' + (pct >= 0 ? 'up' : 'down');
     }
 
     function updateChart() {
-      const group = document.getElementById('groupSelect').value;
-      const grouped = {};
-
-      filteredData.forEach(r => {
-        if (r.tipo !== 'FAC') return;
-        const key = getGroupKey(r.fecha, group);
-        grouped[key] = (grouped[key] || 0) + r.total;
-      });
+      const group   = document.getElementById('groupSelect').value;
+      const grouped = calcEvolution(filteredData, group);
 
       const labels = Object.keys(grouped).sort();
       const values = labels.map(k => grouped[k]);
@@ -1139,7 +1210,7 @@
           labels: labels.map(l => formatGroupLabel(l, group)),
           datasets: [{
             data: values,
-            backgroundColor: 'rgba(0, 212, 170, 0.8)',
+            backgroundColor: values.map(v => v >= 0 ? 'rgba(37,150,190,0.75)' : 'rgba(192,57,43,0.65)'),
             borderRadius: 4
           }]
         },
@@ -1148,8 +1219,14 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', maxRotation: 45 } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', callback: v => formatCurrency(v) } }
+            x: {
+              grid: { color: 'rgba(37,150,190,0.08)' },
+              ticks: { color: '#7a96a6', maxRotation: 45 }
+            },
+            y: {
+              grid: { color: 'rgba(37,150,190,0.08)' },
+              ticks: { color: '#7a96a6', callback: v => formatCurrency(v) }
+            }
           }
         }
       });
@@ -1175,18 +1252,20 @@
 
     function updateDonut() {
       const byChannel = calcByChannel(filteredData);
-      const total = byChannel.reduce((acc, c) => acc + Math.max(0, c.importe), 0);
+      // Solo canales con neto positivo para el donut
+      const positives = byChannel.filter(c => c.importe > 0);
+      const total     = positives.reduce((acc, c) => acc + c.importe, 0);
 
       document.getElementById('donutValue').textContent = formatCurrency(total);
 
-      const svg = document.getElementById('donutSvg');
-      svg.innerHTML = '<circle cx="80" cy="80" r="55" fill="none" stroke="#27272a" stroke-width="22"/>';
+      const svg  = document.getElementById('donutSvg');
+      svg.innerHTML = '<circle cx="80" cy="80" r="55" fill="none" stroke="#ccdde6" stroke-width="22"/>';
 
       let offset = 0;
       const circ = 2 * Math.PI * 55;
 
-      byChannel.filter(c => c.importe > 0).slice(0, 8).forEach((ch, i) => {
-        const pct = total > 0 ? (ch.importe / total) : 0;
+      positives.slice(0, 8).forEach((ch, i) => {
+        const pct  = total > 0 ? (ch.importe / total) : 0;
         const dash = pct * circ;
 
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -1204,7 +1283,7 @@
       });
 
       const legend = document.getElementById('donutLegend');
-      legend.innerHTML = byChannel.filter(c => c.importe > 0).slice(0, 6).map((ch, i) => {
+      legend.innerHTML = positives.slice(0, 6).map((ch, i) => {
         const cfg = getChannelConfig(ch.canal);
         return `
           <div class="legend-item">
@@ -1228,16 +1307,19 @@
       else rows.sort((a, b) => b.importe - a.importe);
 
       const tbody = document.getElementById('rankBody');
-      const top = rows.slice(0, topN);
+      const top   = rows.slice(0, topN);
 
       if (!top.length) {
-        tbody.innerHTML = `<tr><td colspan="4" class="muted">Sin datos para el rango/canal seleccionado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="muted" style="padding:1rem 1.25rem;">Sin datos para el rango/canal seleccionado.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = top.map(r => `
+      tbody.innerHTML = top.map((r, idx) => `
         <tr>
-          <td><span class="amount">${r.sku}</span></td>
+          <td>
+            <span style="color:var(--text-muted);font-size:0.7rem;margin-right:0.5rem;">${idx + 1}.</span>
+            <span class="amount" style="color:var(--accent-secondary)">${r.sku}</span>
+          </td>
           <td>${(r.descripcion || '').substring(0, 80)}</td>
           <td>${formatNumber(r.unidades)}</td>
           <td><span class="amount positive">${formatCurrency(r.importe)}</span></td>
@@ -1262,21 +1344,32 @@
 
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = withChange.map(c => {
-        const cfg = getChannelConfig(c.canal);
+        const cfg         = getChannelConfig(c.canal);
         const changeClass = c.change >= 0 ? 'up' : 'down';
-        const changeText = (c.change >= 0 ? '+' : '') + Math.round(c.change) + '%';
+        const changeText  = (c.change >= 0 ? '+' : '') + Math.round(c.change) + '%';
+
+        // Si el importe neto es negativo, marcarlo en rojo
+        const importeClass = c.importe >= 0 ? 'positive' : 'negative';
+
+        // NC count: mostrar con badge si > 0
+        const ncCell = c.nc > 0
+          ? `<span class="nc-badge">${formatNumber(c.nc)}</span>`
+          : `<span class="muted">0</span>`;
 
         return `
           <tr>
             <td>
               <div class="channel-cell">
                 <div class="channel-avatar ${cfg.bg}">${cfg.abbr}</div>
-                <span>${cfg.name}</span>
+                <div>
+                  <div>${cfg.name}</div>
+                  ${c.importeNC < 0 ? `<div style="font-size:0.65rem;color:var(--accent-danger);">NC: ${formatCurrency(c.importeNC)}</div>` : ''}
+                </div>
               </div>
             </td>
-            <td><span class="amount positive">${formatCurrency(c.importe)}</span></td>
+            <td><span class="amount ${importeClass}">${formatCurrency(c.importe)}</span></td>
             <td>${formatNumber(c.facturas)}</td>
-            <td>${formatNumber(c.nc)}</td>
+            <td>${ncCell}</td>
             <td><span class="amount">${formatCurrency(c.prevImporte)}</span></td>
             <td><span class="change-badge ${changeClass}">${changeText}</span></td>
           </tr>
@@ -1289,12 +1382,10 @@
     // =========================================================================
     document.getElementById('btnReload').addEventListener('click', () => loadData());
     document.getElementById('btnRetry').addEventListener('click', () => loadData());
-
     document.getElementById('periodSelect').addEventListener('change', () => {
       updateCalendarVisibility();
       applyFilters();
     });
-
     document.getElementById('channelSelect').addEventListener('change', applyFilters);
     document.getElementById('groupSelect').addEventListener('change', updateChart);
     document.getElementById('tableSort').addEventListener('change', updateTable);
@@ -1302,16 +1393,14 @@
     document.getElementById('rankTopN').addEventListener('change', updateRanking);
 
     document.getElementById('btnAplicar').addEventListener('click', async () => {
-      const desde = document.getElementById('desde').value; // yyyy-mm-dd
-      const hasta = document.getElementById('hasta').value; // yyyy-mm-dd
-
+      const desde = document.getElementById('desde').value;
+      const hasta = document.getElementById('hasta').value;
       if (!desde || !hasta) { alert('Completar Desde y Hasta'); return; }
-      if (desde > hasta) { alert('Rango invalido: Desde > Hasta'); return; }
+      if (desde > hasta)    { alert('Rango inválido: Desde > Hasta'); return; }
 
       customStart = new Date(desde + 'T00:00:00');
       customEnd   = new Date(hasta + 'T00:00:00');
 
-      // Recargar ventas ya filtradas por rango (API) y forzar modo custom
       await loadData({ desde, hasta });
       document.getElementById('periodSelect').value = 'custom';
       updateCalendarVisibility();
@@ -1328,3 +1417,4 @@
   </script>
 </body>
 </html>
+
