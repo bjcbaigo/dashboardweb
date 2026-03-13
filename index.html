@@ -786,10 +786,35 @@
         .join('&');
     }
 
+    // Fetch directo (funciona en móvil, Google Apps Script soporta CORS con "Cualquier usuario")
+    function fetchDirect(url) {
+      return new Promise((resolve, reject) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
+
+        fetch(url, { signal: controller.signal, redirect: 'follow' })
+          .then(r => {
+            clearTimeout(timeout);
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+          })
+          .then(text => {
+            // El Apps Script puede devolver JSON puro o JSONP envuelto
+            let json = text.trim();
+            // Si viene envuelto en callback(...) lo extraemos
+            const m = json.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(([\s\S]*)\)\s*;?\s*$/);
+            if (m) json = m[1];
+            resolve(JSON.parse(json));
+          })
+          .catch(err => { clearTimeout(timeout); reject(err); });
+      });
+    }
+
+    // JSONP como fallback
     function jsonp(url, callbackName) {
       return new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        const timeout = setTimeout(() => { cleanup(); reject(new Error('Timeout JSONP')); }, 30000);
+        const timeout = setTimeout(() => { cleanup(); reject(new Error('Timeout JSONP')); }, 60000);
 
         function cleanup() {
           clearTimeout(timeout);
@@ -802,6 +827,16 @@
         script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
         document.body.appendChild(script);
       });
+    }
+
+    // Intenta fetch directo primero, si falla usa JSONP
+    async function fetchData(url) {
+      try {
+        return await fetchDirect(url);
+      } catch (e) {
+        console.warn('Fetch directo falló, usando JSONP:', e.message);
+        return await jsonp(url, '__cbVentas_' + Date.now());
+      }
     }
 
     // =========================================================================
@@ -1001,16 +1036,22 @@
     // =========================================================================
     // DATA LOADING
     // =========================================================================
-    async function loadData(opts) {
+    async function loadData(opts, _retry) {
       const btn = document.getElementById('btnReload');
       btn.classList.add('loading');
       setLoading();
+
+      // Mostrar intento en pantalla de carga
+      const retryNum = _retry || 1;
+      if (retryNum > 1) {
+        document.querySelector('.loading-text').textContent = 'Reintentando... (intento ' + retryNum + '/3)';
+      }
 
       try {
         const desde = opts && opts.desde ? opts.desde : '';
         const hasta = opts && opts.hasta ? opts.hasta : '';
         const urlVentas = API_BASE + '?' + qs({ api: 'ventas', desde, hasta });
-        const payload = await jsonp(urlVentas, '__cbVentas_' + Date.now());
+        const payload = await fetchData(urlVentas);
 
         if (!payload || payload.error) throw new Error(payload && payload.message ? payload.message : 'Error del servidor');
         if (!payload.data || !payload.data.length) throw new Error('Sin datos');
@@ -1040,7 +1081,15 @@
         updateCalendarVisibility();
         applyFilters();
       } catch (err) {
-        setError(err.message || String(err));
+        // Reintento automático hasta 3 veces (útil en móvil con conexión lenta)
+        if (retryNum < 3) {
+          const delay = retryNum * 3000; // 3s, 6s
+          document.querySelector('.loading-text').textContent =
+            'Reintentando en ' + (delay / 1000) + 's... (intento ' + (retryNum + 1) + '/3)';
+          setTimeout(() => loadData(opts, retryNum + 1), delay);
+          return;
+        }
+        setError('No se pudo cargar después de 3 intentos. Verificá tu conexión y reintentá. (' + (err.message || String(err)) + ')');
       } finally {
         btn.classList.remove('loading');
       }
