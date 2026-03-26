@@ -10,6 +10,7 @@
   <!-- v2: paleta clara corporativa CHEMES + NC restadas -->
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root {
       /* Paleta corporativa CHEMES - clara, inspirada en la imagen de referencia */
@@ -523,6 +524,26 @@
       .controls-bar { flex-direction: column; align-items: stretch; }
       .period-info { margin-left: 0; text-align: left; margin-top: 0.5rem; }
     }
+
+    /* ===== BOTÓN EXCEL ===== */
+    .btn-excel {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #1a7a4e;
+      border: 1px solid #155f3d;
+      color: #ffffff;
+      padding: 0.35rem 0.85rem;
+      border-radius: 7px;
+      cursor: pointer; font-size: 0.72rem; font-weight: 600;
+      font-family: inherit; transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-excel:hover {
+      background: #155f3d;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(26,122,78,0.25);
+    }
+    .btn-excel:active { transform: translateY(0); }
+    .btn-excel svg { flex-shrink: 0; }
   </style>
 </head>
 
@@ -698,6 +719,15 @@
               <option value="25">Top 25</option>
               <option value="50">Top 50</option>
             </select>
+            <button class="btn-excel" onclick="exportarRankingExcel()" title="Descargar Top SKU en Excel">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="11" x2="12" y2="17"/>
+                <polyline points="9 14 12 17 15 14"/>
+              </svg>
+              Descargar Excel
+            </button>
           </div>
         </div>
         <table class="data-table">
@@ -1478,6 +1508,65 @@
       updateCalendarVisibility();
       applyFilters();
     });
+
+    // =========================================================================
+    // EXPORT EXCEL - TOP SKU
+    // =========================================================================
+    function exportarRankingExcel() {
+      if (!filteredData || !filteredData.length) {
+        alert('No hay datos para exportar.');
+        return;
+      }
+
+      const sort = document.getElementById('rankSort').value;
+      const topN = parseInt(document.getElementById('rankTopN').value, 10) || 10;
+
+      // Obtener canal seleccionado para el nombre del archivo
+      const channelSel = document.getElementById('channelSelect');
+      const canalLabel = channelSel.options[channelSel.selectedIndex].text;
+
+      // Obtener período para el nombre del archivo
+      const periodSel = document.getElementById('periodSelect');
+      const periodoLabel = periodSel.options[periodSel.selectedIndex].text;
+
+      // Calcular top artículos (misma lógica que updateRanking)
+      const rows = calcTopArticulos(filteredData);
+      if (sort === 'unidades') rows.sort((a, b) => b.unidades - a.unidades);
+      else rows.sort((a, b) => b.importe - a.importe);
+
+      const top = rows.slice(0, topN);
+
+      if (!top.length) {
+        alert('Sin datos para el rango/canal seleccionado.');
+        return;
+      }
+
+      // Construir filas para Excel
+      const excelRows = top.map((r, idx) => ({
+        '#':              idx + 1,
+        'SKU':            r.sku,
+        'Descripción':    r.descripcion || '',
+        'Unidades':       r.unidades,
+        'Importe Neto':   r.importe,
+        'Canal':          canalLabel,
+        'Período':        periodoLabel,
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(excelRows);
+
+      // Anchos de columna
+      ws['!cols'] = [
+        { wch: 5 }, { wch: 18 }, { wch: 55 }, { wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 20 }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Top SKU');
+
+      // Nombre del archivo: canal + período + fecha
+      const canalSlug = canalLabel.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+      const fecha = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `CHEMES_TopSKU_${canalSlug}_Top${topN}_${fecha}.xlsx`);
+    }
 
     // =========================================================================
     // INIT
