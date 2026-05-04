@@ -297,6 +297,116 @@
     .kpi-change.up   { background: rgba(26,122,78,0.10); color: var(--accent-success); }
     .kpi-change.down { background: rgba(192,57,43,0.10); color: var(--accent-danger); }
 
+    /* === Executive enhancements (v60) === */
+    .kpi-sparkline {
+      width: 100%;
+      max-width: 260px;
+      height: 36px;
+      display: block;
+      margin: 0.4rem 0 0.5rem;
+      opacity: 0.85;
+    }
+
+    .kpi-context {
+      font-size: 0.68rem;
+      margin-top: 0.45rem;
+      letter-spacing: 0.01em;
+      line-height: 1.3;
+      min-height: 0.9rem;
+    }
+
+    .executive-summary {
+      background: linear-gradient(135deg, #ffffff 0%, #f5f9fb 100%);
+      border: 1px solid var(--border-color);
+      border-left: 3px solid var(--accent-primary);
+      border-radius: 10px;
+      padding: 0.95rem 1.15rem;
+      margin-bottom: 0.85rem;
+      box-shadow: 0 1px 3px rgba(37,150,190,0.06);
+    }
+
+    .summary-headline {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.45;
+      letter-spacing: -0.005em;
+    }
+
+    .summary-headline strong {
+      color: var(--accent-primary);
+      font-weight: 700;
+    }
+
+    .summary-alerts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+
+    .summary-alert {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.65rem;
+      background: rgba(192,57,43,0.08);
+      border: 1px solid rgba(192,57,43,0.18);
+      border-radius: 6px;
+      font-size: 0.72rem;
+      color: var(--accent-danger);
+      font-weight: 500;
+    }
+
+    .summary-alert.warn {
+      background: rgba(196,125,14,0.08);
+      border-color: rgba(196,125,14,0.20);
+      color: var(--accent-warning);
+    }
+
+    .summary-alert.success {
+      background: rgba(26,122,78,0.08);
+      border-color: rgba(26,122,78,0.20);
+      color: var(--accent-success);
+    }
+
+    .summary-alert .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+
+    /* Inline bars for table cells */
+    .cell-bar-wrap {
+      position: relative;
+      display: block;
+      width: 100%;
+    }
+
+    .cell-bar-bg {
+      position: absolute;
+      left: 0;
+      bottom: -3px;
+      height: 3px;
+      background: var(--accent-light);
+      opacity: 0.55;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .cell-bar-bg.secondary {
+      background: var(--accent-secondary);
+      opacity: 0.35;
+    }
+    /* === end executive enhancements === */
+
     /* Charts */
     .charts-grid {
       display: grid;
@@ -638,6 +748,12 @@
         </div>
       </div>
 
+      <!-- Headline narrativo + Alertas (se popula dinamicamente) -->
+      <div class="executive-summary" id="executiveSummary" style="display:none;">
+        <div class="summary-headline" id="summaryHeadline"></div>
+        <div class="summary-alerts" id="summaryAlerts"></div>
+      </div>
+
       <!-- Nota informativa sobre NC -->
       <div class="nc-info-bar">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -649,18 +765,22 @@
         <div class="kpi-card">
           <div class="kpi-label">Ventas Netas</div>
           <div class="kpi-value" id="kpiSales">$0</div>
+          <canvas class="kpi-sparkline" id="sparkSales" width="240" height="36"></canvas>
           <div class="kpi-compare">
             <span class="kpi-prev">Anterior: <span id="kpiSalesPrev">$0</span></span>
             <span class="kpi-change" id="kpiSalesChange">0%</span>
           </div>
+          <div class="kpi-context muted" id="kpiSalesContext"></div>
         </div>
         <div class="kpi-card teal2">
           <div class="kpi-label">Unidades</div>
           <div class="kpi-value" id="kpiUnits">0</div>
+          <canvas class="kpi-sparkline" id="sparkUnits" width="240" height="36"></canvas>
           <div class="kpi-compare">
             <span class="kpi-prev">Anterior: <span id="kpiUnitsPrev">0</span></span>
             <span class="kpi-change" id="kpiUnitsChange">0%</span>
           </div>
+          <div class="kpi-context muted" id="kpiUnitsContext"></div>
         </div>
         <div class="kpi-card green">
           <div class="kpi-label">Comprobantes</div>
@@ -673,18 +793,22 @@
               <span style="font-size:0.7rem; color:var(--accent-danger);">N/C</span>
             </div>
           </div>
+          <canvas class="kpi-sparkline" id="sparkDocs" width="240" height="36"></canvas>
           <div class="kpi-compare">
             <span class="kpi-prev">Anterior: <span id="kpiDocsPrev">0</span> FAC</span>
             <span class="kpi-change" id="kpiDocsChange">0%</span>
           </div>
+          <div class="kpi-context muted" id="kpiDocsContext"></div>
         </div>
         <div class="kpi-card amber">
           <div class="kpi-label">Ticket Promedio</div>
           <div class="kpi-value" id="kpiTicket">$0</div>
+          <canvas class="kpi-sparkline" id="sparkTicket" width="240" height="36"></canvas>
           <div class="kpi-compare">
             <span class="kpi-prev">Anterior: <span id="kpiTicketPrev">$0</span></span>
             <span class="kpi-change" id="kpiTicketChange">0%</span>
           </div>
+          <div class="kpi-context muted" id="kpiTicketContext"></div>
         </div>
       </div>
 
@@ -1310,6 +1434,9 @@
       updateDonut();
       updateRanking();
       updateTable();
+      // Executive layer (v60): se ejecuta despues para tener todos los calculos disponibles
+      updateExecutiveSummary();
+      updateAllSparklines();
     }
 
     function updateKPIs() {
@@ -1327,6 +1454,37 @@
         ncEl.textContent = curr.numNC;
         ncEl.style.color = curr.numNC > 0 ? 'var(--accent-danger)' : 'var(--text-muted)';
       }
+
+      // Contexto de comparacion parcial (v60)
+      const ctxText = buildComparisonContext();
+      ['kpiSalesContext','kpiUnitsContext','kpiDocsContext','kpiTicketContext'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = ctxText;
+      });
+    }
+
+    /**
+     * Construye nota contextual: si la comparacion es parcial (ej: 3 dias vs mes completo)
+     * lo aclara explicitamente para que el usuario no malinterprete las variaciones.
+     */
+    function buildComparisonContext() {
+      if (!filteredData.length || !compareData.length) return '';
+
+      const period = document.getElementById('periodSelect').value;
+      const mainRange = getDateRange(period);
+      const compRange = getCompareRange(period);
+
+      if (!mainRange.start || !compRange.start) return '';
+
+      const oneDay = 86400000;
+      const mainDays = Math.round((mainRange.end - mainRange.start) / oneDay);
+      const compDays = Math.round((compRange.end - compRange.start) / oneDay);
+
+      // Si los rangos son muy desiguales (ej: 3 vs 30) marcar como comparacion parcial
+      if (mainDays > 0 && compDays > 0 && mainDays / compDays < 0.5) {
+        return `* Comparacion parcial: ${mainDays} dia${mainDays > 1 ? 's' : ''} vs ${compDays} dias del periodo anterior`;
+      }
+      return '';
     }
 
     function setKPI(valId, prevId, changeId, curr, prev, isCurrency) {
@@ -1338,6 +1496,239 @@
       const el  = document.getElementById(changeId);
       el.textContent = (pct >= 0 ? '+' : '') + Math.round(pct) + '%';
       el.className   = 'kpi-change ' + (pct >= 0 ? 'up' : 'down');
+    }
+
+    // =========================================================================
+    // EXECUTIVE LAYER (v60): sparklines + headline narrativo + alertas
+    // =========================================================================
+
+    /**
+     * Dibuja un sparkline en un canvas. Usa los ultimos 30 dias del rawData
+     * filtrado por canal y categoria (no por rango temporal).
+     */
+    function drawSparkline(canvasId, valuesArray, color) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = canvas.clientWidth || 240;
+      const cssH = canvas.clientHeight || 36;
+
+      // HiDPI handling para que se vea nitido en pantallas retina
+      canvas.width = cssW * dpr;
+      canvas.height = cssH * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cssW, cssH);
+
+      if (!valuesArray || valuesArray.length < 2) return;
+
+      const min = Math.min(...valuesArray);
+      const max = Math.max(...valuesArray);
+      const range = max - min || 1;
+      const padding = 2;
+      const w = cssW - padding * 2;
+      const h = cssH - padding * 2;
+
+      // Coordenadas
+      const points = valuesArray.map((v, i) => ({
+        x: padding + (i / (valuesArray.length - 1)) * w,
+        y: padding + h - ((v - min) / range) * h
+      }));
+
+      // Area sutil debajo de la linea
+      const grad = ctx.createLinearGradient(0, 0, 0, cssH);
+      grad.addColorStop(0, color + '33');  // 20% opacity
+      grad.addColorStop(1, color + '00');  // transparent
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, cssH - padding);
+      points.forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.lineTo(points[points.length - 1].x, cssH - padding);
+      ctx.closePath();
+      ctx.fill();
+
+      // Linea principal
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      points.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+
+      // Punto final destacado
+      const last = points[points.length - 1];
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    /**
+     * Construye los datos diarios de los ultimos N dias para cada KPI.
+     * Aplica los filtros activos (canal + categoria) pero NO el de rango,
+     * para que el sparkline siempre muestre la trayectoria reciente.
+     */
+    function buildSparklineSeries(days) {
+      days = days || 30;
+
+      const channel  = document.getElementById('channelSelect').value;
+      const category = document.getElementById('categorySelect').value;
+
+      // Aplica los mismos filtros que applyFilters pero sin rango
+      let base = filterByChannel(rawData, channel);
+      base = filterByCategory(base, category);
+
+      if (!base.length) return { sales: [], units: [], docs: [], ticket: [] };
+
+      // Determinar el rango: ultimos N dias hasta maxDataDate
+      const endDate = maxDataDate || new Date();
+      const startDate = new Date(endDate.getTime() - (days - 1) * 86400000);
+      startDate.setHours(0, 0, 0, 0);
+
+      // Inicializar buckets diarios
+      const sales = new Array(days).fill(0);
+      const units = new Array(days).fill(0);
+      const docsByDay = Array.from({ length: days }, () => new Set());
+
+      base.forEach(r => {
+        const d = r.fecha;
+        if (d < startDate || d > endDate) return;
+        const idx = Math.floor((d - startDate) / 86400000);
+        if (idx < 0 || idx >= days) return;
+
+        if (r.tipo === 'FAC') {
+          sales[idx] += r.total;
+          units[idx] += Math.abs(r.cantidad);
+          docsByDay[idx].add(r.nroComprobante);
+        } else if (isNC(r.tipo)) {
+          sales[idx] -= Math.abs(r.total);
+        }
+      });
+
+      const docs = docsByDay.map(s => s.size);
+      const ticket = sales.map((s, i) => docs[i] > 0 ? s / docs[i] : 0);
+
+      return { sales, units, docs, ticket };
+    }
+
+    function updateAllSparklines() {
+      const series = buildSparklineSeries(30);
+
+      // Colores alineados a la "stripe" de cada card
+      drawSparkline('sparkSales',  series.sales,  '#2596be');  // primary
+      drawSparkline('sparkUnits',  series.units,  '#14637f');  // secondary
+      drawSparkline('sparkDocs',   series.docs,   '#1a7a4e');  // success
+      drawSparkline('sparkTicket', series.ticket, '#c47d0e');  // warning
+    }
+
+    /**
+     * Construye el headline narrativo + alertas operativas.
+     * Headline: top performer del periodo + tendencia general.
+     * Alertas: canales con tasa NC > 15% (umbral configurable).
+     */
+    function updateExecutiveSummary() {
+      const summaryEl  = document.getElementById('executiveSummary');
+      const headlineEl = document.getElementById('summaryHeadline');
+      const alertsEl   = document.getElementById('summaryAlerts');
+
+      if (!filteredData.length) {
+        summaryEl.style.display = 'none';
+        return;
+      }
+
+      // === Headline ===
+      const byChannel = calcByChannel(filteredData);
+      const positives = byChannel.filter(c => c.importe > 0);
+      const total = positives.reduce((s, c) => s + c.importe, 0);
+
+      let headline = '';
+
+      if (positives.length > 0 && total > 0) {
+        const top = positives[0];
+        const topCfg = getChannelConfig(top.canal);
+        const topPct = (top.importe / total * 100).toFixed(0);
+
+        // Variacion vs anterior
+        const curr = calcMetrics(filteredData);
+        const prev = calcMetrics(compareData);
+        const change = calcChange(curr.importe, prev.importe);
+
+        let tendencia = '';
+        if (Math.abs(change) >= 5) {
+          if (change > 0) tendencia = ` Crecimiento de <strong>+${Math.round(change)}%</strong> vs periodo anterior.`;
+          else tendencia = ` Caida de <strong>${Math.round(change)}%</strong> vs periodo anterior.`;
+        }
+
+        // Top SKU del periodo
+        const topSku = calcTopArticulos(filteredData)[0];
+        let skuPart = '';
+        if (topSku && topSku.importe > 0) {
+          const skuName = (topSku.descripcion || topSku.sku).substring(0, 40);
+          skuPart = ` Producto top: <strong>${skuName}</strong>.`;
+        }
+
+        headline = `<strong>${topCfg.name}</strong> lidera con ${topPct}% del volumen.${skuPart}${tendencia}`;
+      }
+
+      headlineEl.innerHTML = headline;
+
+      // === Alertas ===
+      const alerts = [];
+
+      // Alerta 1: canales con tasa NC alta
+      byChannel.forEach(c => {
+        if (c.facturas >= 20) {  // umbral minimo de comprobantes para evitar ruido en canales chicos
+          const tasaNC = (c.nc / c.facturas) * 100;
+          if (tasaNC > 15) {
+            const cfg = getChannelConfig(c.canal);
+            alerts.push({
+              level: 'danger',
+              text: `${cfg.name}: ${tasaNC.toFixed(0)}% de NC (${c.nc}/${c.facturas} comprobantes)`
+            });
+          }
+        }
+      });
+
+      // Alerta 2: si la tasa de NC global supera 10%
+      const totalFAC = byChannel.reduce((s, c) => s + c.facturas, 0);
+      const totalNC = byChannel.reduce((s, c) => s + c.nc, 0);
+      if (totalFAC >= 50) {
+        const tasaGlobal = (totalNC / totalFAC) * 100;
+        if (tasaGlobal > 10) {
+          alerts.push({
+            level: 'warn',
+            text: `Tasa global de NC: ${tasaGlobal.toFixed(1)}%`
+          });
+        }
+      }
+
+      // Alerta 3: concentracion excesiva en un solo canal (>90%)
+      if (positives.length >= 2 && total > 0) {
+        const topShare = (positives[0].importe / total) * 100;
+        if (topShare > 90) {
+          const cfg = getChannelConfig(positives[0].canal);
+          alerts.push({
+            level: 'warn',
+            text: `Concentracion: ${topShare.toFixed(0)}% del volumen en ${cfg.name}`
+          });
+        }
+      }
+
+      // Render alertas
+      if (alerts.length === 0) {
+        alertsEl.innerHTML = '<span class="summary-alert success"><span class="dot"></span>Sin alertas operativas en el periodo</span>';
+      } else {
+        alertsEl.innerHTML = alerts.map(a =>
+          `<span class="summary-alert ${a.level === 'warn' ? 'warn' : ''}"><span class="dot"></span>${a.text}</span>`
+        ).join('');
+      }
+
+      summaryEl.style.display = 'block';
     }
 
     function updateChart() {
@@ -1496,6 +1887,13 @@
       if (sort === 'unidades') withChange.sort((a, b) => b.unidades - a.unidades);
       else if (sort === 'cambio') withChange.sort((a, b) => b.change - a.change);
 
+      // Calcular maximos para escalar las barras in-cell (v60)
+      const maxImporte = Math.max(...withChange.map(c => Math.abs(c.importe)), 1);
+      const maxTicket = Math.max(
+        ...withChange.map(c => c.facturas > 0 ? Math.abs(c.importe / c.facturas) : 0),
+        1
+      );
+
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = withChange.map(c => {
         const cfg         = getChannelConfig(c.canal);
@@ -1518,6 +1916,10 @@
         // Ticket promedio = Importe Neto / Cantidad de Facturas
         const ticketProm = c.facturas > 0 ? c.importe / c.facturas : 0;
 
+        // Barras in-cell (v60): proporcion respecto al maximo de la columna
+        const barImportePct = (Math.abs(c.importe) / maxImporte) * 100;
+        const barTicketPct = (Math.abs(ticketProm) / maxTicket) * 100;
+
         return `
           <tr>
             <td>
@@ -1529,11 +1931,21 @@
                 </div>
               </div>
             </td>
-            <td><span class="amount ${importeClass}">${formatCurrency(c.importe)}</span></td>
+            <td>
+              <div class="cell-bar-wrap">
+                <span class="amount ${importeClass}">${formatCurrency(c.importe)}</span>
+                <div class="cell-bar-bg" style="width:${barImportePct}%;"></div>
+              </div>
+            </td>
             <td>${formatNumber(c.facturas)}</td>
             <td>${ncCell}</td>
             <td><span class="amount" style="color:${tasaNCColor};font-weight:${tasaNCWeight};">${tasaNC.toFixed(1)}%</span></td>
-            <td><span class="amount" style="color:var(--accent-secondary);">${formatCurrency(ticketProm)}</span></td>
+            <td>
+              <div class="cell-bar-wrap">
+                <span class="amount" style="color:var(--accent-secondary);">${formatCurrency(ticketProm)}</span>
+                <div class="cell-bar-bg secondary" style="width:${barTicketPct}%;"></div>
+              </div>
+            </td>
             <td><span class="amount">${formatCurrency(c.prevImporte)}</span></td>
             <td><span class="change-badge ${changeClass}">${changeText}</span></td>
           </tr>
