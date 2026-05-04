@@ -600,6 +600,15 @@
             <option value="all">Todos los Canales</option>
           </select>
         </div>
+        <div class="control-group">
+          <label class="control-label">Tipo</label>
+          <select class="control-select" id="categorySelect" title="Filtrar por tipo de linea">
+            <option value="PRODUCTO" selected>Solo Productos</option>
+            <option value="all">Todo (incluye fletes y puntos)</option>
+            <option value="FLETE">Solo Fletes</option>
+            <option value="PUNTOS">Solo Pagos con Puntos</option>
+          </select>
+        </div>
         <div class="period-info">
           <div class="current" id="periodLabel">--</div>
           <div>vs <span id="compareLabel">--</span></div>
@@ -737,6 +746,8 @@
               <th>Descripción</th>
               <th>Unidades</th>
               <th>Importe Neto</th>
+              <th title="Porcentaje del SKU sobre el total">% s/total</th>
+              <th title="Porcentaje acumulado (curva de Pareto)">% acum</th>
             </tr>
           </thead>
           <tbody id="rankBody"></tbody>
@@ -760,6 +771,8 @@
               <th>Importe Neto</th>
               <th>Facturas</th>
               <th>N/C</th>
+              <th title="Tasa de Notas de Credito sobre Facturas">% N/C</th>
+              <th title="Importe Neto / Cantidad de Facturas">Ticket Prom.</th>
               <th>Anterior</th>
               <th>Variación</th>
             </tr>
@@ -784,14 +797,14 @@
     ];
 
     const CHANNEL_CONFIG = {
-      'MERCADO LIBRE': { name: 'MercadoLibre',  bg: 'bg-ml',     abbr: 'ME' },
+      'MERCADO LIBRE': { name: 'MercadoLibre',   bg: 'bg-ml',     abbr: 'ME' },
       'VENTAS WEB':    { name: 'E-commerce Web', bg: 'bg-web',    abbr: 'WE' },
       'SHOP BNA':      { name: 'Tienda BNA',     bg: 'bg-bna',    abbr: 'SH' },
-      'SHOP BNA PROMO':{ name: 'BNA Promo',      bg: 'bg-bna',    abbr: 'BP' },
       'ICBC MALL':     { name: 'ICBC Mall',      bg: 'bg-icbc',   abbr: 'IC' },
       'TIENDA CLIC':   { name: 'Tienda Clic',    bg: 'bg-clic',   abbr: 'TC' },
-      'COMAFI':        { name: 'Comafi',          bg: 'bg-comafi', abbr: 'CO' },
-      'TIENDRA MACRO': { name: 'Tienda Macro',   bg: 'bg-macro',  abbr: 'TM' }
+      'COMAFI':        { name: 'Comafi',         bg: 'bg-comafi', abbr: 'CO' },
+      'TIENDA MACRO':  { name: 'Tienda Macro',   bg: 'bg-macro',  abbr: 'TM' },
+      'OTROS':         { name: 'Otros',          bg: 'bg-other',  abbr: 'OT' }
     };
 
     // =========================================================================
@@ -1036,6 +1049,11 @@
       return data.filter(r => r.canal === channel);
     }
 
+    function filterByCategory(data, category) {
+      if (!category || category === 'all') return data;
+      return data.filter(r => r.categoria === category);
+    }
+
     // =========================================================================
     // UI STATES
     // =========================================================================
@@ -1096,7 +1114,8 @@
           sku:            String(r.sku || ''),
           descripcion:    String(r.descripcion || ''),
           cantidad:       Number(r.cantidad) || 0,
-          total:          Number(r.total) || 0
+          total:          Number(r.total) || 0,
+          categoria:      String(r.categoria || 'PRODUCTO').toUpperCase().trim()
         })).filter(r => r.fecha);
 
         if (!rawData.length) throw new Error('Todas las fechas quedaron inválidas. Revisar formato de Fecha en CSV.');
@@ -1139,8 +1158,9 @@
     // FILTERS
     // =========================================================================
     function applyFilters() {
-      const period  = document.getElementById('periodSelect').value;
-      const channel = document.getElementById('channelSelect').value;
+      const period   = document.getElementById('periodSelect').value;
+      const channel  = document.getElementById('channelSelect').value;
+      const category = document.getElementById('categorySelect').value;
 
       const mainRange = getDateRange(period);
       const compRange = getCompareRange(period);
@@ -1148,9 +1168,11 @@
       document.getElementById('periodLabel').textContent  = mainRange.label;
       document.getElementById('compareLabel').textContent = compRange.label;
 
-      const channelFiltered = filterByChannel(rawData, channel);
-      filteredData = filterByRange(channelFiltered, mainRange);
-      compareData  = filterByRange(channelFiltered, compRange);
+      // Cadena de filtros: canal -> categoria -> rango
+      const channelFiltered  = filterByChannel(rawData, channel);
+      const categoryFiltered = filterByCategory(channelFiltered, category);
+      filteredData = filterByRange(categoryFiltered, mainRange);
+      compareData  = filterByRange(categoryFiltered, compRange);
 
       updateDashboard();
     }
@@ -1234,7 +1256,22 @@
         bySku[sku].unidades += Math.abs(r.cantidad);
         bySku[sku].importe  += r.total;
       });
-      return Object.values(bySku);
+      const arr = Object.values(bySku);
+
+      // Pareto: ordenar por importe descendente y calcular % sobre total y % acumulado
+      const sorted = arr.slice().sort((a, b) => b.importe - a.importe);
+      const total = sorted.reduce((s, r) => s + (r.importe > 0 ? r.importe : 0), 0);
+
+      let acum = 0;
+      sorted.forEach(r => {
+        const positivo = r.importe > 0 ? r.importe : 0;
+        r.pctTotal = total > 0 ? (positivo / total) * 100 : 0;
+        acum += positivo;
+        r.pctAcum = total > 0 ? (acum / total) * 100 : 0;
+      });
+
+      // Devolver con los porcentajes ya calculados
+      return sorted;
     }
 
     // =========================================================================
@@ -1412,12 +1449,18 @@
       const top   = rows.slice(0, topN);
 
       if (!top.length) {
-        tbody.innerHTML = `<tr><td colspan="4" class="muted" style="padding:1rem 1.25rem;">Sin datos para el rango/canal seleccionado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="muted" style="padding:1rem 1.25rem;">Sin datos para el rango/canal seleccionado.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = top.map((r, idx) => `
-        <tr>
+      tbody.innerHTML = top.map((r, idx) => {
+        // Marca cuando se cruza el 80% (linea Pareto). El primer SKU que pasa el 80% lleva borde inferior.
+        const cruza80 = (idx > 0 && top[idx - 1].pctAcum < 80 && r.pctAcum >= 80);
+        const trStyle = cruza80 ? ' style="border-bottom:2px solid var(--accent-warning);"' : '';
+        const acumColor = r.pctAcum < 80 ? 'var(--accent-success)' : (r.pctAcum < 95 ? 'var(--accent-warning)' : 'var(--text-muted)');
+
+        return `
+        <tr${trStyle}>
           <td>
             <span style="color:var(--text-muted);font-size:0.7rem;margin-right:0.5rem;">${idx + 1}.</span>
             <span class="amount" style="color:var(--accent-secondary)">${r.sku}</span>
@@ -1425,8 +1468,10 @@
           <td>${(r.descripcion || '').substring(0, 80)}</td>
           <td>${formatNumber(r.unidades)}</td>
           <td><span class="amount positive">${formatCurrency(r.importe)}</span></td>
-        </tr>
-      `).join('');
+          <td><span class="amount" style="color:var(--text-secondary);">${(r.pctTotal || 0).toFixed(2)}%</span></td>
+          <td><span class="amount" style="color:${acumColor};font-weight:700;">${(r.pctAcum || 0).toFixed(1)}%</span></td>
+        </tr>`;
+      }).join('');
     }
 
     function updateTable() {
@@ -1458,6 +1503,14 @@
           ? `<span class="nc-badge">${formatNumber(c.nc)}</span>`
           : `<span class="muted">0</span>`;
 
+        // Tasa NC = NC / FAC (sobre cantidad de comprobantes). Color: rojo si > 15%, amber si > 7%
+        const tasaNC = c.facturas > 0 ? (c.nc / c.facturas) * 100 : 0;
+        const tasaNCColor = tasaNC > 15 ? 'var(--accent-danger)' : (tasaNC > 7 ? 'var(--accent-warning)' : 'var(--text-secondary)');
+        const tasaNCWeight = tasaNC > 15 ? '700' : '500';
+
+        // Ticket promedio = Importe Neto / Cantidad de Facturas
+        const ticketProm = c.facturas > 0 ? c.importe / c.facturas : 0;
+
         return `
           <tr>
             <td>
@@ -1472,6 +1525,8 @@
             <td><span class="amount ${importeClass}">${formatCurrency(c.importe)}</span></td>
             <td>${formatNumber(c.facturas)}</td>
             <td>${ncCell}</td>
+            <td><span class="amount" style="color:${tasaNCColor};font-weight:${tasaNCWeight};">${tasaNC.toFixed(1)}%</span></td>
+            <td><span class="amount" style="color:var(--accent-secondary);">${formatCurrency(ticketProm)}</span></td>
             <td><span class="amount">${formatCurrency(c.prevImporte)}</span></td>
             <td><span class="change-badge ${changeClass}">${changeText}</span></td>
           </tr>
@@ -1489,6 +1544,7 @@
       applyFilters();
     });
     document.getElementById('channelSelect').addEventListener('change', applyFilters);
+    document.getElementById('categorySelect').addEventListener('change', applyFilters);
     document.getElementById('groupSelect').addEventListener('change', updateChart);
     document.getElementById('tableSort').addEventListener('change', updateTable);
     document.getElementById('rankSort').addEventListener('change', updateRanking);
@@ -1525,6 +1581,10 @@
       const channelSel = document.getElementById('channelSelect');
       const canalLabel = channelSel.options[channelSel.selectedIndex].text;
 
+      // Obtener categoria seleccionada para el nombre del archivo
+      const categSel = document.getElementById('categorySelect');
+      const categLabel = categSel.options[categSel.selectedIndex].text;
+
       // Obtener período para el nombre del archivo
       const periodSel = document.getElementById('periodSelect');
       const periodoLabel = periodSel.options[periodSel.selectedIndex].text;
@@ -1541,22 +1601,26 @@
         return;
       }
 
-      // Construir filas para Excel
+      // Construir filas para Excel (con columnas Pareto)
       const excelRows = top.map((r, idx) => ({
         '#':              idx + 1,
         'SKU':            r.sku,
         'Descripción':    r.descripcion || '',
         'Unidades':       r.unidades,
         'Importe Neto':   r.importe,
+        '% s/Total':      Number((r.pctTotal || 0).toFixed(2)),
+        '% Acumulado':    Number((r.pctAcum || 0).toFixed(2)),
         'Canal':          canalLabel,
-        'Período':        periodoLabel,
+        'Tipo':           categLabel,
+        'Período':        periodoLabel
       }));
 
       const ws = XLSX.utils.json_to_sheet(excelRows);
 
       // Anchos de columna
       ws['!cols'] = [
-        { wch: 5 }, { wch: 18 }, { wch: 55 }, { wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 20 }
+        { wch: 5 }, { wch: 18 }, { wch: 55 }, { wch: 12 }, { wch: 18 },
+        { wch: 12 }, { wch: 14 }, { wch: 20 }, { wch: 22 }, { wch: 20 }
       ];
 
       const wb = XLSX.utils.book_new();
